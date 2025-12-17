@@ -5,11 +5,17 @@
   "workspaces": [
     "packages/*"
   ],
+  "scripts": {
+    "lint": "pnpm -r --if-present lint",
+    "type-check": "pnpm -r --if-present type-check",
+    "build": "pnpm -r --if-present build",
+    "build:shared": "pnpm --filter @saas/shared build"
+  },
   "devDependencies": {
     "typescript": "^5.3.3"
   },
   "engines": {
     "node": ">=18.0.0",
-    "npm": ">=9.0.0"
+    "pnpm": ">=8.0.0"
   }
 }

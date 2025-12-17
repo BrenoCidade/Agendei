@@ -6,13 +6,18 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "test": "vitest"
+    "test": "vitest",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint . --ext .ts"
   },
   "dependencies": {
     "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/node": "^20.10.5",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^8.57.0",
     "vitest": "^1.0.4"
   },
   "keywords": [],
