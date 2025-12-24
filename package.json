@@ -12,6 +12,7 @@
     "build:shared": "pnpm --filter @saas/shared build"
   },
   "devDependencies": {
+    "prettier": "^3.4.2",
     "typescript": "^5.3.3"
   },
   "engines": {
