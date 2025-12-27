@@ -11,4 +11,14 @@ export interface IAppointmentRepository {
     endsAt: Date,
     excludeId?: string,
   ): Promise<Appointment | null>;
+  findFutureByProviderAndDay(
+    providerId: string,
+    day: number,
+  ): Promise<Appointment[]>;
+  existsByServiceId(serviceId: string): Promise<boolean>;
+  findByProviderAndDateRange(
+    providerId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<Appointment[]>;
 }
