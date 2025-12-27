@@ -1,7 +1,7 @@
 import { User } from '@/domain/entities/user';
 import { BusinessRuleError } from '@/domain/errors';
 import { IUserRepository } from '@/domain/repositories/IUserRepository';
-import { PasswordService } from '@/domain/services/password.service';
+import { IPasswordService } from '@/domain/services/IPasswordService';
 
 interface RegisterUserInput {
   name: string;
@@ -12,7 +12,10 @@ interface RegisterUserInput {
 }
 
 export class RegisterUserUseCase {
-  constructor(private readonly userRepository: IUserRepository) {}
+  constructor(
+    private readonly userRepository: IUserRepository,
+    private readonly passwordService: IPasswordService,
+  ) {}
 
   async execute(input: RegisterUserInput): Promise<User> {
     const existingUser = await this.userRepository.findByEmail(input.email);
@@ -24,7 +27,7 @@ export class RegisterUserUseCase {
       );
     }
 
-    const passwordHash = await PasswordService.hash(input.password);
+    const passwordHash = await this.passwordService.hash(input.password);
 
     const user = new User({
       name: input.name,

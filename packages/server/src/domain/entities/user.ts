@@ -1,5 +1,4 @@
 import { ValidationError } from '../errors';
-import { PasswordService } from '../services/password.service';
 import { Email } from '../value-objects/email';
 import { Phone } from '../value-objects/phone';
 import { Slug } from '../value-objects/slug';
@@ -101,14 +100,20 @@ export class User {
     return this._updatedAt;
   }
 
-  validatePassword(plainPassword: string): boolean {
-    return PasswordService.compare(plainPassword, this._passwordHash);
+  get passwordHash(): string {
+    return this._passwordHash;
   }
 
   updateProfile(name: string, email: string, phone?: string): void {
     this._name = this.validateName(name);
     this._email = Email.create(email.toLowerCase().trim());
     this._phone = phone ? Phone.create(phone) : null;
+    this._updatedAt = new Date();
+  }
+
+  updateBusinessProfile(businessName: string, slug: string): void {
+    this._businessName = this.validateBusinessName(businessName);
+    this._slug = Slug.create(slug);
     this._updatedAt = new Date();
   }
 
