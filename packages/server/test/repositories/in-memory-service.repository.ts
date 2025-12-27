@@ -21,6 +21,14 @@ export class InMemoryServiceRepository implements IServiceRepository {
     return Promise.resolve(service ?? null);
   }
 
+  findByIdOrFail(id: string): Promise<Service> {
+    const service = this.services.find((s) => s.id === id);
+    if (!service) {
+      throw new Error('Service not found');
+    }
+    return Promise.resolve(service);
+  }
+
   findByProviderId(providerId: string): Promise<Service[]> {
     return Promise.resolve(
       this.services.filter((s) => s.providerId === providerId),

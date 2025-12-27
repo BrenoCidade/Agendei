@@ -21,6 +21,14 @@ export class InMemoryCustomerRepository implements ICustomerRepository {
     return Promise.resolve(customer ?? null);
   }
 
+  findByIdOrFail(id: string): Promise<Customer> {
+    const customer = this.customers.find((c) => c.id === id);
+    if (!customer) {
+      throw new Error('Customer not found');
+    }
+    return Promise.resolve(customer);
+  }
+
   findByEmailAndProvider(
     email: string,
     providerId: string,

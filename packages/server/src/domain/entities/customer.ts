@@ -72,4 +72,10 @@ export class Customer {
     this._phone = Phone.create(phone);
     this._updatedAt = new Date();
   }
+
+  ensureOwnedBy(userId: string): void {
+    if (this._providerId !== userId) {
+      throw new Error('You do not have permission to modify this customer');
+    }
+  }
 }

@@ -1,4 +1,4 @@
-import { ValidationError } from '../errors';
+import { BusinessRuleError, ValidationError } from '../errors';
 
 interface ServiceProps {
   id?: string;
@@ -168,5 +168,14 @@ export class Service {
   deactivate(): void {
     this._isActive = false;
     this._updatedAt = new Date();
+  }
+
+  ensureOwnedBy(userId: string): void {
+    if (this._providerId !== userId) {
+      throw new BusinessRuleError(
+        'You do not have permission to modify this service',
+        'SERVICE_ACCESS_FORBIDDEN',
+      );
+    }
   }
 }

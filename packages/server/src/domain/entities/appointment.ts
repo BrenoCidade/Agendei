@@ -165,4 +165,13 @@ export class Appointment {
     this._status = 'COMPLETED';
     this._updatedAt = new Date();
   }
+
+  ensureOwnedBy(userId: string): void {
+    if (this._providerId !== userId) {
+      throw new BusinessRuleError(
+        'You do not have permission to modify this appointment',
+        'APPOINTMENT_ACCESS_FORBIDDEN',
+      );
+    }
+  }
 }

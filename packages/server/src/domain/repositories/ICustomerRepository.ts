@@ -3,6 +3,7 @@ import { Customer } from '../entities/customer';
 export interface ICustomerRepository {
   save(customer: Customer): Promise<void>;
   findById(id: string): Promise<Customer | null>;
+  findByIdOrFail(id: string): Promise<Customer>;
   findByEmailAndProvider(
     email: string,
     providerId: string,

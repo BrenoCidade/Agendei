@@ -3,6 +3,7 @@ import { Appointment } from '../entities/appointment';
 export interface IAppointmentRepository {
   save(appointment: Appointment): Promise<void>;
   findById(id: string): Promise<Appointment | null>;
+  findByIdOrFail(id: string): Promise<Appointment>;
   findByProviderId(providerId: string): Promise<Appointment[]>;
   findByCustomerId(customerId: string): Promise<Appointment[]>;
   findOverlapping(
