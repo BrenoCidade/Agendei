@@ -93,11 +93,29 @@ export type AvailabilityResponseDTO = z.infer<
   typeof availabilityResponseSchema
 >;
 
+export type AvailableSlotsResponseDTO = z.infer<
+  typeof availableSlotsResponseSchema
+>;
+
 export const availableSlotsResponseSchema = z.object({
   date: z.string(),
   slots: z.array(z.string().regex(TIME_REGEX)),
 });
 
-export type AvailableSlotsResponseDTO = z.infer<
-  typeof availableSlotsResponseSchema
+export const deleteAvailabilitySchema = z.object({
+  dayOfWeek: z.coerce.number().int().min(0).max(6),
+});
+
+export type DeleteAvailabilityDTO = z.infer<typeof deleteAvailabilitySchema>;
+
+export const getAvailabilityQuerySchema = z.object({
+  dayOfWeek: z.coerce.number().int().min(0).max(6).optional(),
+  isActive: z
+    .enum(['true', 'false'])
+    .transform((val) => val === 'true')
+    .optional(),
+});
+
+export type GetAvailabilityQueryDTO = z.infer<
+  typeof getAvailabilityQuerySchema
 >;

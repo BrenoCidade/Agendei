@@ -70,3 +70,64 @@ export const publicProviderProfileSchema = z.object({
 export type PublicProviderProfileDTO = z.infer<
   typeof publicProviderProfileSchema
 >;
+
+export const updateProfileSchema = z.object({
+  name: z
+    .string()
+    .min(2, 'The name must have at least 2 characters')
+    .max(50, 'The name must have at most 50 characters')
+    .trim(),
+  email: z.string().email('Invalid email address').toLowerCase().trim(),
+  phone: z
+    .string()
+    .transform((val) => val.replace(/\D/g, ''))
+    .pipe(z.string().regex(/^\d{10,15}$/, 'Invalid phone number'))
+    .optional(),
+});
+
+export type UpdateProfileDTO = z.infer<typeof updateProfileSchema>;
+
+export const updateBusinessProfileSchema = z.object({
+  businessName: z
+    .string()
+    .min(2, 'The business name must have at least 2 characters')
+    .max(100, 'The business name must have at most 100 characters')
+    .trim(),
+  slug: z
+    .string()
+    .min(3, 'The slug must have at least 3 characters')
+    .max(100, 'The slug must have at most 100 characters')
+    .regex(
+      /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+      'Slug must contain only lowercase letters, numbers and hyphens',
+    )
+    .trim()
+    .toLowerCase(),
+});
+
+export type UpdateBusinessProfileDTO = z.infer<
+  typeof updateBusinessProfileSchema
+>;
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().email('Invalid email address').toLowerCase().trim(),
+});
+
+export type ForgotPasswordDTO = z.infer<typeof forgotPasswordSchema>;
+
+export const resetPasswordSchema = z.object({
+  token: z.string().uuid('Invalid recovery token'),
+  password: z
+    .string()
+    .min(8, 'The password must have at least 8 characters')
+    .max(72, 'The password must have at most 72 characters')
+    .regex(/[A-Z]/, 'The password must contain at least one uppercase letter')
+    .regex(/[a-z]/, 'The password must contain at least one lowercase letter')
+    .regex(/[0-9]/, 'The password must contain at least one number')
+    .regex(
+      /[^A-Za-z0-9]/,
+      'The password must contain at least one special character',
+    ),
+});
+
+export type ResetPasswordDTO = z.infer<typeof resetPasswordSchema>;

@@ -96,3 +96,29 @@ export const appointmentResponseSchema = baseAppointmentSchema.extend({
 });
 
 export type AppointmentResponse = z.infer<typeof appointmentResponseSchema>;
+
+export const listAppointmentsQuerySchema = z.object({
+  providerId: z.string().uuid('Invalid provider ID').optional(),
+  customerId: z.string().uuid('Invalid customer ID').optional(),
+  status: AppointmentStatusSchema.optional(),
+  startDate: z.string().date().optional(),
+  endDate: z.string().date().optional(),
+  page: z.coerce.number().int().positive().default(1).optional(),
+  limit: z.coerce.number().int().positive().max(100).default(20).optional(),
+});
+
+export type ListAppointmentsQueryDTO = z.infer<
+  typeof listAppointmentsQuerySchema
+>;
+
+export const confirmAppointmentSchema = z.object({
+  appointmentId: z.string().uuid('Invalid appointment ID'),
+});
+
+export type ConfirmAppointmentDTO = z.infer<typeof confirmAppointmentSchema>;
+
+export const completeAppointmentSchema = z.object({
+  appointmentId: z.string().uuid('Invalid appointment ID'),
+});
+
+export type CompleteAppointmentDTO = z.infer<typeof completeAppointmentSchema>;

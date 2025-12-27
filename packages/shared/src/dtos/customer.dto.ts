@@ -31,3 +31,12 @@ export const customerResponseSchema = baseCustomerSchema.extend({
 });
 
 export type CustomerResponseDTO = z.infer<typeof customerResponseSchema>;
+
+export const listCustomersQuerySchema = z.object({
+  providerId: z.string().uuid('Invalid provider ID'),
+  search: z.string().trim().optional(),
+  page: z.coerce.number().int().positive().default(1).optional(),
+  limit: z.coerce.number().int().positive().max(100).default(20).optional(),
+});
+
+export type ListCustomersQueryDTO = z.infer<typeof listCustomersQuerySchema>;

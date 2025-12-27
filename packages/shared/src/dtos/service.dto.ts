@@ -42,3 +42,14 @@ export const serviceResponseSchema = baseServiceSchema.extend({
 });
 
 export type ServiceResponseDTO = z.infer<typeof serviceResponseSchema>;
+
+export const listServicesQuerySchema = z.object({
+  providerId: z.string().uuid('Invalid provider ID').optional(),
+  isActive: z
+    .enum(['true', 'false'])
+    .transform((val) => val === 'true')
+    .optional(),
+  search: z.string().trim().optional(),
+});
+
+export type ListServicesQueryDTO = z.infer<typeof listServicesQuerySchema>;
