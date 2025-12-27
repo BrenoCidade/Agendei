@@ -1,6 +1,5 @@
 import { User } from '../../../../src/domain/entities/user';
 import { ValidationError } from '../../../../src/domain/errors';
-import { PasswordService } from '../../../../src/domain/services/password.service';
 
 describe('User Entity', () => {
   describe('Constructor', () => {
@@ -167,35 +166,16 @@ describe('User Entity', () => {
     });
   });
 
-  describe('validatePassword', () => {
-    it('should return true for valid password', async () => {
-      const passwordHash = await PasswordService.hash('senha123');
-
+  describe('passwordHash getter', () => {
+    it('should expose password hash for authentication', () => {
       const user = new User({
         name: 'João',
         email: 'joao@email.com',
         businessName: 'João Barbearia',
-        passwordHash,
+        passwordHash: '$2a$10$hashedpassword',
       });
 
-      const isValid = user.validatePassword('senha123');
-
-      expect(isValid).toBe(true);
-    });
-
-    it('should return false for invalid password', async () => {
-      const passwordHash = await PasswordService.hash('senha123');
-
-      const user = new User({
-        name: 'João',
-        email: 'joao@email.com',
-        businessName: 'João Barbearia',
-        passwordHash,
-      });
-
-      const isValid = user.validatePassword('senhaerrada');
-
-      expect(isValid).toBe(false);
+      expect(user.passwordHash).toBe('$2a$10$hashedpassword');
     });
   });
 

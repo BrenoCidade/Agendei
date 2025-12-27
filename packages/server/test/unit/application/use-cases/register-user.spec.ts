@@ -1,16 +1,34 @@
 import { RegisterUserUseCase } from '../../../../src/application/use-cases/user/register-user.use-case';
 import { User } from '../../../../src/domain/entities/user';
 import { BusinessRuleError } from '../../../../src/domain/errors';
-import { PasswordService } from '../../../../src/domain/services/password.service';
+import { IPasswordService } from '../../../../src/domain/services/IPasswordService';
 import { InMemoryUserRepository } from '../../../repositories/in-memory-user.repository';
+
+// Mock simples do PasswordService para testes
+class MockPasswordService implements IPasswordService {
+  async hash(password: string): Promise<string> {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    return `hashed_${password}`;
+  }
+
+  async compare(password: string, hash: string): Promise<boolean> {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    return hash === `hashed_${password}`;
+  }
+}
 
 describe('RegisterUserUseCase', () => {
   let userRepository: InMemoryUserRepository;
+  let passwordService: IPasswordService;
   let registerUserUseCase: RegisterUserUseCase;
 
   beforeEach(() => {
     userRepository = new InMemoryUserRepository();
-    registerUserUseCase = new RegisterUserUseCase(userRepository);
+    passwordService = new MockPasswordService();
+    registerUserUseCase = new RegisterUserUseCase(
+      userRepository,
+      passwordService,
+    );
   });
 
   it('should register a new user successfully', async () => {
@@ -56,12 +74,16 @@ describe('RegisterUserUseCase', () => {
 
     const user = await registerUserUseCase.execute(input);
 
-    const isPasswordValid = user.validatePassword('senha123');
+    // Verifica se o hash foi gerado corretamente
+    const isPasswordValid = await passwordService.compare(
+      'senha123',
+      user.passwordHash,
+    );
     expect(isPasswordValid).toBe(true);
   });
 
   it('should throw error if email already exists', async () => {
-    const passwordHash = await PasswordService.hash('senha123');
+    const passwordHash = await passwordService.hash('senha123');
 
     const existingUser = new User({
       id: crypto.randomUUID(),
