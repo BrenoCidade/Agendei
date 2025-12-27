@@ -1,0 +1,126 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String   @db.VarChar(50)
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  phone        String?  @db.VarChar(20)
+  businessName String   @map("business_name") @db.VarChar(100)
+  slug         String   @unique @db.VarChar(100)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  services       Service[]
+  customers      Customer[]
+  appointments   Appointment[]
+  availabilities Availability[]
+
+  @@map("users")
+}
+
+model Service {
+  id                String   @id @default(uuid())
+  name              String   @db.VarChar(100)
+  description       String?  @db.VarChar(500)
+  durationInMinutes Int      @map("duration_in_minutes")
+  priceInCents      Int      @map("price_in_cents")
+  isActive          Boolean  @default(true) @map("is_active")
+  providerId        String   @map("provider_id")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  provider     User          @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  appointments Appointment[]
+
+  @@index([providerId])
+  @@index([isActive])
+  @@map("services")
+}
+
+model Customer {
+  id         String   @id @default(uuid())
+  name       String   @db.VarChar(50)
+  email      String   @db.VarChar(255)
+  phone      String   @db.VarChar(15)
+  providerId String   @map("provider_id")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  provider     User          @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  appointments Appointment[]
+
+  @@unique([email, providerId], name: "customer_email_provider_unique")
+  @@unique([phone, providerId], name: "customer_phone_provider_unique")
+  @@index([providerId])
+  @@map("customers")
+}
+
+model Appointment {
+  id           String            @id @default(uuid())
+  customerId   String            @map("customer_id")
+  serviceId    String            @map("service_id")
+  providerId   String            @map("provider_id")
+  startsAt     DateTime          @map("starts_at") @db.Timestamptz(3)
+  endsAt       DateTime          @map("ends_at") @db.Timestamptz(3)
+  status       AppointmentStatus @default(PENDING)
+  observation  String?           @db.VarChar(500)
+  cancelReason String?           @map("cancel_reason") @db.VarChar(500)
+  canceledBy   CancelationActor? @map("canceled_by")
+  canceledAt   DateTime?         @map("canceled_at") @db.Timestamptz(3)
+  createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  service  Service  @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  provider User     @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@index([serviceId])
+  @@index([providerId])
+  @@index([startsAt])
+  @@index([status])
+  @@map("appointments")
+}
+
+model Availability {
+  id         String   @id @default(uuid())
+  providerId String   @map("provider_id")
+  dayOfWeek  Int      @map("day_of_week")
+  slots      Json
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  provider User @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, dayOfWeek], name: "availability_provider_day_unique")
+  @@index([providerId])
+  @@map("availabilities")
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+enum CancelationActor {
+  CUSTOMER
+  PROVIDER
+  SYSTEM
+}
