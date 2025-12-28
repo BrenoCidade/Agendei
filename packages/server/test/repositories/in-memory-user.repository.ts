@@ -1,3 +1,4 @@
+import { PaginatedResult } from '@/domain/types/pagination';
 import { User } from '../../src/domain/entities/user';
 import { IUserRepository } from '../../src/domain/repositories/IUserRepository';
 
@@ -16,8 +17,27 @@ export class InMemoryUserRepository implements IUserRepository {
     return Promise.resolve();
   }
 
-  findAll(): Promise<User[]> {
-    return Promise.resolve(this.users);
+  findAll(
+    page: number = 1,
+    limit: number = 20,
+  ): Promise<PaginatedResult<User>> {
+    const validPage = Math.max(1, page);
+    const validLimit = Math.min(100, Math.max(1, limit));
+
+    const skip = (validPage - 1) * validLimit;
+
+    const paginatedUsers = this.users.slice(skip, skip + validLimit);
+
+    const total = this.users.length;
+    const totalPages = Math.ceil(total / validLimit);
+
+    return Promise.resolve({
+      data: paginatedUsers,
+      total,
+      page: validPage,
+      limit: validLimit,
+      totalPages,
+    });
   }
 
   findById(id: string): Promise<User | null> {
