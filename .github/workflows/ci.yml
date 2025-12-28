@@ -2,9 +2,9 @@ name: CI Pipeline (Quality Check)
 
 on:
   push:
-    branches: ["master"]
+    branches: ['master']
   pull_request:
-    branches: ["master"]
+    branches: ['master']
 
 jobs:
   build-and-test:
@@ -22,8 +22,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          cache: "pnpm"
+          node-version: '20'
+          cache: 'pnpm'
 
       - name: Get pnpm store directory
         shell: bash
@@ -45,6 +45,9 @@ jobs:
 
       - name: Type Check
         run: pnpm -r --if-present type-check
+
+      - name: Generate Prisma Client
+        run: pnpm --filter server exec prisma generate
 
       - name: Check Linting
         run: pnpm -r --if-present lint
