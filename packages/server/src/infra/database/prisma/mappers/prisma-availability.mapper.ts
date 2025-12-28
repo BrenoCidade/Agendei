@@ -1,11 +1,19 @@
 import { Availability } from '@/domain/entities/availability';
 import { Prisma, Availability as PrismaAvailability } from '@prisma/client';
 
+type AvailabilityPrismaData = {
+  id: string;
+  providerId: string;
+  dayOfWeek: number;
+  slots: Prisma.InputJsonValue;
+  isActive: boolean;
+};
+
 export class PrismaAvailabilityMapper {
   private static slotsToJson(
     slots: Array<{ start: string; end: string }>,
-  ): Prisma.JsonValue {
-    return JSON.parse(JSON.stringify(slots)) as Prisma.JsonValue;
+  ): Prisma.InputJsonValue {
+    return slots as Prisma.InputJsonValue;
   }
 
   private static jsonToSlots(
@@ -16,7 +24,6 @@ export class PrismaAvailabilityMapper {
     }
 
     if (!Array.isArray(jsonSlots)) {
-      console.warn('Invalid slots format, returning empty array');
       return [];
     }
 
@@ -37,9 +44,7 @@ export class PrismaAvailabilityMapper {
     });
   }
 
-  static toPrisma(
-    availability: Availability,
-  ): Omit<PrismaAvailability, 'createdAt' | 'updatedAt'> {
+  static toPrisma(availability: Availability): AvailabilityPrismaData {
     return {
       id: availability.id,
       providerId: availability.providerId,
