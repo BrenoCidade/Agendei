@@ -101,4 +101,18 @@ export class PrismaUserRepository implements IUserRepository {
       totalPages: Math.ceil(total / safeLimit),
     };
   }
+
+  async findByPasswordResetToken(token: string): Promise<User | null> {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        passwordResetToken: token,
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    return PrismaUserMapper.toDomain(user);
+  }
 }

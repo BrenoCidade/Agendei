@@ -11,6 +11,8 @@ export class PrismaUserMapper {
       businessName: raw.businessName,
       slug: raw.slug,
       passwordHash: raw.passwordHash,
+      passwordResetToken: raw.passwordResetToken ?? null,
+      passwordResetExpires: raw.passwordResetTokenExpiresAt ?? null,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
     });
@@ -25,6 +27,8 @@ export class PrismaUserMapper {
       phone: user.phone,
       businessName: user.businessName,
       slug: user.slug,
+      passwordResetToken: user.passwordResetToken,
+      passwordResetTokenExpiresAt: user.passwordResetExpires,
     };
   }
 }

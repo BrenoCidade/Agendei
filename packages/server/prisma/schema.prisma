@@ -10,18 +10,21 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id           String   @id @default(uuid())
-  name         String   @db.VarChar(50)
-  email        String   @unique @db.VarChar(255)
-  passwordHash String   @map("password_hash") @db.VarChar(255)
-  phone        String?  @db.VarChar(20)
-  businessName String   @map("business_name") @db.VarChar(100)
-  slug         String   @unique @db.VarChar(100)
-  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  id                          String    @id @default(uuid())
+  name                        String    @db.VarChar(50)
+  email                       String    @unique @db.VarChar(255)
+  passwordHash                String    @map("password_hash") @db.VarChar(255)
+  phone                       String?   @db.VarChar(20)
+  businessName                String    @map("business_name") @db.VarChar(100)
+  slug                        String    @unique @db.VarChar(100)
+  passwordResetToken          String?   @map("password_reset_token") @db.VarChar(255)
+  passwordResetTokenExpiresAt DateTime? @map("password_reset_token_expires_at")
+  createdAt                   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   services       Service[]
   customers      Customer[]

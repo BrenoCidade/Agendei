@@ -1,7 +1,8 @@
 import { User } from '@/domain/entities/user';
 import { NotFoundError, ValidationError } from '@/domain/errors';
-import { IUserRepository } from '@/domain/repositories/IUserRepository';
-import { IPasswordService } from '@/domain/services/IPasswordService';
+import type { IUserRepository } from '@/domain/repositories/IUserRepository';
+import type { IPasswordService } from '@/domain/services/IPasswordService';
+import { Inject } from '@nestjs/common';
 
 interface AuthenticateUserInput {
   email: string;
@@ -10,7 +11,9 @@ interface AuthenticateUserInput {
 
 export class AuthenticateUserUseCase {
   constructor(
+    @Inject('IUserRepository')
     private readonly userRepository: IUserRepository,
+    @Inject('IPasswordService')
     private readonly passwordService: IPasswordService,
   ) {}
 

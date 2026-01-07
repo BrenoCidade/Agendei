@@ -9,4 +9,5 @@ export interface IUserRepository {
   findAll(page?: number, limit?: number): Promise<PaginatedResult<User>>;
   findBySlug(slug: string): Promise<User | null>;
   existsBySlug(slug: string): Promise<boolean>;
+  findByPasswordResetToken(token: string): Promise<User | null>;
 }

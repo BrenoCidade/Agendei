@@ -1,23 +1,37 @@
-import { IUserRepository } from '@/domain/repositories/IUserRepository';
-import { IEmailGateway } from '@/domain/gateways/IEmailGateway';
-import { randomUUID } from 'node:crypto';
+import type { IEmailGateway } from '@/domain/gateways/IEmailGateway';
+import type { IUserRepository } from '@/domain/repositories/IUserRepository';
+import { Inject, Injectable } from '@nestjs/common';
+import { randomBytes } from 'crypto';
 
-interface ForgotPasswordInput {
+type ForgotPasswordInput = {
   email: string;
-}
+};
 
+@Injectable()
 export class ForgotPasswordUseCase {
   constructor(
+    @Inject('IUserRepository')
     private readonly userRepository: IUserRepository,
+    @Inject('IEmailGateway')
     private readonly emailGateway: IEmailGateway,
   ) {}
 
-  async execute(input: ForgotPasswordInput): Promise<void> {
-    const user = await this.userRepository.findByEmail(input.email);
+  async execute({ email }: ForgotPasswordInput): Promise<void> {
+    const user = await this.userRepository.findByEmail(email);
 
-    if (user) {
-      const recoveryToken = randomUUID();
-      await this.emailGateway.sendRecoveryEmail(user.email, recoveryToken);
+    if (!user) {
+      return;
     }
+
+    const token = randomBytes(32).toString('hex');
+    const expiration = new Date();
+    expiration.setHours(expiration.getHours() + 1);
+
+    user.passwordResetToken = token;
+    user.passwordResetExpires = expiration;
+
+    await this.userRepository.save(user);
+
+    await this.emailGateway.sendRecoveryEmail(user.email, token);
   }
 }

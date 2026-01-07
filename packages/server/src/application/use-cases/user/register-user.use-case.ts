@@ -1,7 +1,8 @@
 import { User } from '@/domain/entities/user';
 import { BusinessRuleError } from '@/domain/errors';
-import { IUserRepository } from '@/domain/repositories/IUserRepository';
-import { IPasswordService } from '@/domain/services/IPasswordService';
+import type { IUserRepository } from '@/domain/repositories/IUserRepository';
+import type { IPasswordService } from '@/domain/services/IPasswordService';
+import { Inject, Injectable } from '@nestjs/common';
 
 interface RegisterUserInput {
   name: string;
@@ -11,9 +12,12 @@ interface RegisterUserInput {
   password: string;
 }
 
+@Injectable()
 export class RegisterUserUseCase {
   constructor(
+    @Inject('IUserRepository')
     private readonly userRepository: IUserRepository,
+    @Inject('IPasswordService')
     private readonly passwordService: IPasswordService,
   ) {}
 

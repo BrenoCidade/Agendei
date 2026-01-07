@@ -11,6 +11,8 @@ interface UserProps {
   businessName: string;
   slug?: string;
   passwordHash: string;
+  passwordResetToken?: string | null;
+  passwordResetExpires?: Date | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -23,6 +25,9 @@ export class User {
   private _businessName: string;
   private _slug: Slug;
   private _passwordHash: string;
+  private _passwordResetToken: string | null = null;
+  private _passwordResetExpires: Date | null = null;
+
   private _createdAt: Date;
   private _updatedAt: Date;
 
@@ -64,6 +69,8 @@ export class User {
       ? Slug.create(props.slug)
       : Slug.generate(props.businessName);
     this._passwordHash = props.passwordHash;
+    this._passwordResetToken = props.passwordResetToken ?? null;
+    this._passwordResetExpires = props.passwordResetExpires ?? null;
     this._createdAt = props.createdAt ?? new Date();
     this._updatedAt = props.updatedAt ?? new Date();
   }
@@ -100,8 +107,24 @@ export class User {
     return this._updatedAt;
   }
 
+  get passwordResetToken(): string | null {
+    return this._passwordResetToken;
+  }
+
+  get passwordResetExpires(): Date | null {
+    return this._passwordResetExpires;
+  }
+
   get passwordHash(): string {
     return this._passwordHash;
+  }
+
+  set passwordResetToken(token: string | null) {
+    this._passwordResetToken = token;
+  }
+
+  set passwordResetExpires(expiration: Date | null) {
+    this._passwordResetExpires = expiration;
   }
 
   updateProfile(name: string, email: string, phone?: string): void {
