@@ -1,8 +1,9 @@
 import { Appointment } from '@/domain/entities/appointment';
 import type { AppointmentStatus } from '@saas/shared';
 import { NotFoundError } from '@/domain/errors';
-import { IAppointmentRepository } from '@/domain/repositories/IAppointmentRepository';
-import { IUserRepository } from '@/domain/repositories/IUserRepository';
+import type { IAppointmentRepository } from '@/domain/repositories/IAppointmentRepository';
+import type { IUserRepository } from '@/domain/repositories/IUserRepository';
+import { Inject, Injectable } from '@nestjs/common';
 
 interface ListAppointmentsInput {
   providerId: string;
@@ -11,9 +12,12 @@ interface ListAppointmentsInput {
   status?: AppointmentStatus;
 }
 
+@Injectable()
 export class ListAppointmentsUseCase {
   constructor(
+    @Inject('IAppointmentRepository')
     private readonly appointmentRepository: IAppointmentRepository,
+    @Inject('IUserRepository')
     private readonly userRepository: IUserRepository,
   ) {}
 

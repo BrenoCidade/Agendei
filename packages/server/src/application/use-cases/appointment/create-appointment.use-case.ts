@@ -1,8 +1,9 @@
 import { Appointment } from '@/domain/entities/appointment';
 import { Customer } from '@/domain/entities/customer';
 import { BusinessRuleError } from '@/domain/errors';
-import { IAppointmentRepository } from '@/domain/repositories/IAppointmentRepository';
-import { ICustomerRepository } from '@/domain/repositories/ICustomerRepository';
+import type { IAppointmentRepository } from '@/domain/repositories/IAppointmentRepository';
+import type { ICustomerRepository } from '@/domain/repositories/ICustomerRepository';
+import { Inject, Injectable } from '@nestjs/common';
 
 interface CreateAppointmentInput {
   customerName: string;
@@ -15,9 +16,12 @@ interface CreateAppointmentInput {
   observation?: string;
 }
 
+@Injectable()
 export class CreateAppointmentUseCase {
   constructor(
+    @Inject('IAppointmentRepository')
     private readonly appointmentRepository: IAppointmentRepository,
+    @Inject('ICustomerRepository')
     private readonly customerRepository: ICustomerRepository,
   ) {}
 

@@ -1,6 +1,7 @@
 import { Service } from '@/domain/entities/service';
 import { NotFoundError, BusinessRuleError } from '@/domain/errors';
-import { IServiceRepository } from '@/domain/repositories/IServiceRepository';
+import type { IServiceRepository } from '@/domain/repositories/IServiceRepository';
+import { Inject, Injectable } from '@nestjs/common';
 
 interface UpdateServiceInput {
   serviceId: string;
@@ -11,8 +12,12 @@ interface UpdateServiceInput {
   priceInCents: number;
 }
 
+@Injectable()
 export class UpdateServiceUseCase {
-  constructor(private readonly serviceRepository: IServiceRepository) {}
+  constructor(
+    @Inject('IServiceRepository')
+    private readonly serviceRepository: IServiceRepository,
+  ) {}
 
   async execute(input: UpdateServiceInput): Promise<Service> {
     const service = await this.serviceRepository.findById(input.serviceId);

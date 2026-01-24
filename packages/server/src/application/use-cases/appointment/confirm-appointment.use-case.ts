@@ -1,14 +1,19 @@
 import { Appointment } from '@/domain/entities/appointment';
 import { NotFoundError, BusinessRuleError } from '@/domain/errors';
-import { IAppointmentRepository } from '@/domain/repositories/IAppointmentRepository';
+import type { IAppointmentRepository } from '@/domain/repositories/IAppointmentRepository';
+import { Inject, Injectable } from '@nestjs/common';
 
 interface ConfirmAppointmentInput {
   appointmentId: string;
   providerId: string;
 }
 
+@Injectable()
 export class ConfirmAppointmentUseCase {
-  constructor(private readonly appointmentRepository: IAppointmentRepository) {}
+  constructor(
+    @Inject('IAppointmentRepository')
+    private readonly appointmentRepository: IAppointmentRepository,
+  ) {}
 
   async execute(input: ConfirmAppointmentInput): Promise<Appointment> {
     const appointment = await this.appointmentRepository.findById(

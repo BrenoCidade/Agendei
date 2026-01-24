@@ -1,7 +1,8 @@
 import { Service } from '@/domain/entities/service';
 import { NotFoundError } from '@/domain/errors';
-import { IServiceRepository } from '@/domain/repositories/IServiceRepository';
-import { IUserRepository } from '@/domain/repositories/IUserRepository';
+import type { IServiceRepository } from '@/domain/repositories/IServiceRepository';
+import type { IUserRepository } from '@/domain/repositories/IUserRepository';
+import { Inject, Injectable } from '@nestjs/common';
 
 interface CreateServiceInput {
   providerId: string;
@@ -11,9 +12,12 @@ interface CreateServiceInput {
   priceInCents: number;
 }
 
+@Injectable()
 export class CreateServiceUseCase {
   constructor(
+    @Inject('IServiceRepository')
     private readonly serviceRepository: IServiceRepository,
+    @Inject('IUserRepository')
     private readonly userRepository: IUserRepository,
   ) {}
 

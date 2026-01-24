@@ -1,15 +1,19 @@
 import { NotFoundError, BusinessRuleError } from '@/domain/errors';
-import { IServiceRepository } from '@/domain/repositories/IServiceRepository';
-import { IAppointmentRepository } from '@/domain/repositories/IAppointmentRepository';
+import type { IServiceRepository } from '@/domain/repositories/IServiceRepository';
+import type { IAppointmentRepository } from '@/domain/repositories/IAppointmentRepository';
+import { Inject, Injectable } from '@nestjs/common';
 
 interface DeleteServiceInput {
   serviceId: string;
   providerId: string;
 }
 
+@Injectable()
 export class DeleteServiceUseCase {
   constructor(
+    @Inject('IServiceRepository')
     private readonly serviceRepository: IServiceRepository,
+    @Inject('IAppointmentRepository')
     private readonly appointmentRepository: IAppointmentRepository,
   ) {}
 

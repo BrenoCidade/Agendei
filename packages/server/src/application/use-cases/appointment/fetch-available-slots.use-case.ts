@@ -1,9 +1,10 @@
 import { NotFoundError, BusinessRuleError } from '@/domain/errors';
-import { IAvailabilityRepository } from '@/domain/repositories/IAvailabilityRepository';
-import { IServiceRepository } from '@/domain/repositories/IServiceRepository';
-import { IUserRepository } from '@/domain/repositories/IUserRepository';
-import { IAppointmentRepository } from '@/domain/repositories/IAppointmentRepository';
+import type { IAvailabilityRepository } from '@/domain/repositories/IAvailabilityRepository';
+import type { IServiceRepository } from '@/domain/repositories/IServiceRepository';
+import type { IUserRepository } from '@/domain/repositories/IUserRepository';
+import type { IAppointmentRepository } from '@/domain/repositories/IAppointmentRepository';
 import { Appointment } from '@/domain/entities/appointment';
+import { Inject, Injectable } from '@nestjs/common';
 
 interface FetchAvailableSlotsInput {
   providerId: string;
@@ -11,11 +12,16 @@ interface FetchAvailableSlotsInput {
   date: Date;
 }
 
+@Injectable()
 export class FetchAvailableSlotsUseCase {
   constructor(
+    @Inject('IUserRepository')
     private readonly userRepository: IUserRepository,
+    @Inject('IServiceRepository')
     private readonly serviceRepository: IServiceRepository,
+    @Inject('IAvailabilityRepository')
     private readonly availabilityRepository: IAvailabilityRepository,
+    @Inject('IAppointmentRepository')
     private readonly appointmentRepository: IAppointmentRepository,
   ) {}
 

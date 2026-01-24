@@ -1,15 +1,19 @@
 import { Availability } from '@/domain/entities/availability';
 import { NotFoundError } from '@/domain/errors';
-import { IAvailabilityRepository } from '@/domain/repositories/IAvailabilityRepository';
-import { IUserRepository } from '@/domain/repositories/IUserRepository';
+import type { IAvailabilityRepository } from '@/domain/repositories/IAvailabilityRepository';
+import type { IUserRepository } from '@/domain/repositories/IUserRepository';
+import { Inject, Injectable } from '@nestjs/common';
 
 interface GetAvailabilityInput {
   providerId: string;
 }
 
+@Injectable()
 export class GetAvailabilityUseCase {
   constructor(
+    @Inject('IAvailabilityRepository')
     private readonly availabilityRepository: IAvailabilityRepository,
+    @Inject('IUserRepository')
     private readonly userRepository: IUserRepository,
   ) {}
 

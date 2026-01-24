@@ -1,7 +1,8 @@
 import { Appointment } from '@/domain/entities/appointment';
 import type { CancelationActor } from '@saas/shared';
 import { NotFoundError, BusinessRuleError } from '@/domain/errors';
-import { IAppointmentRepository } from '@/domain/repositories/IAppointmentRepository';
+import type { IAppointmentRepository } from '@/domain/repositories/IAppointmentRepository';
+import { Inject, Injectable } from '@nestjs/common';
 
 interface CancelAppointmentInput {
   appointmentId: string;
@@ -10,8 +11,12 @@ interface CancelAppointmentInput {
   actorId: string;
 }
 
+@Injectable()
 export class CancelAppointmentUseCase {
-  constructor(private readonly appointmentRepository: IAppointmentRepository) {}
+  constructor(
+    @Inject('IAppointmentRepository')
+    private readonly appointmentRepository: IAppointmentRepository,
+  ) {}
 
   async execute(input: CancelAppointmentInput): Promise<Appointment> {
     const appointment = await this.appointmentRepository.findById(

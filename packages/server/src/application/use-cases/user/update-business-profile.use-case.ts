@@ -1,6 +1,7 @@
 import { User } from '@/domain/entities/user';
 import { BusinessRuleError, NotFoundError } from '@/domain/errors';
-import { IUserRepository } from '@/domain/repositories/IUserRepository';
+import type { IUserRepository } from '@/domain/repositories/IUserRepository';
+import { Inject, Injectable } from '@nestjs/common';
 
 interface UpdateBusinessProfileInput {
   userId: string;
@@ -8,8 +9,12 @@ interface UpdateBusinessProfileInput {
   slug: string;
 }
 
+@Injectable()
 export class UpdateBusinessProfileUseCase {
-  constructor(private readonly userRepository: IUserRepository) {}
+  constructor(
+    @Inject('IUserRepository')
+    private readonly userRepository: IUserRepository,
+  ) {}
 
   async execute(input: UpdateBusinessProfileInput): Promise<User> {
     const user = await this.userRepository.findById(input.userId);

@@ -1,15 +1,19 @@
 import { BusinessRuleError, NotFoundError } from '@/domain/errors';
-import { IAppointmentRepository } from '@/domain/repositories/IAppointmentRepository';
-import { IAvailabilityRepository } from '@/domain/repositories/IAvailabilityRepository';
+import type { IAppointmentRepository } from '@/domain/repositories/IAppointmentRepository';
+import type { IAvailabilityRepository } from '@/domain/repositories/IAvailabilityRepository';
+import { Inject, Injectable } from '@nestjs/common';
 
 interface DeleteAvailabilityInput {
   availabilityId: string;
   providerId: string;
 }
 
+@Injectable()
 export class DeleteAvailabilityUseCase {
   constructor(
+    @Inject('IAvailabilityRepository')
     private readonly availabilityRepository: IAvailabilityRepository,
+    @Inject('IAppointmentRepository')
     private readonly appointmentRepository: IAppointmentRepository,
   ) {}
 
