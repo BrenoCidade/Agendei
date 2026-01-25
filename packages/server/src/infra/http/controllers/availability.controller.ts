@@ -9,7 +9,6 @@ import {
   Param,
   Post,
   UseGuards,
-  UsePipes,
   Request,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../jwt-auth.guard';
@@ -67,10 +66,10 @@ export class AvailabilityController {
   }
 
   @Post('/')
-  @UsePipes(new ZodValidationPipe(setAvailabilitySchema))
   async setAvailability(
     @Request() req: RequestWithUser,
-    @Body() body: SetAvailabilityDTO,
+    @Body(new ZodValidationPipe(setAvailabilitySchema))
+    body: SetAvailabilityDTO,
   ): Promise<AvailabilityResponseDTO> {
     try {
       const providerId = req.user.userId;

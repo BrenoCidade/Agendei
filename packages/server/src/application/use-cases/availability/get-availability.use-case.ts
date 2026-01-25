@@ -24,10 +24,9 @@ export class GetAvailabilityUseCase {
       throw new NotFoundError('Provider not found', 'PROVIDER_NOT_FOUND');
     }
 
-    const availabilities =
-      await this.availabilityRepository.findActiveByProviderId(
-        input.providerId,
-      );
+    const availabilities = await this.availabilityRepository.findByProviderId(
+      input.providerId,
+    );
 
     return availabilities;
   }
