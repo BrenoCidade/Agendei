@@ -8,7 +8,6 @@ import {
   Patch,
   Request,
   UseGuards,
-  UsePipes,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../jwt-auth.guard';
 import { GetProfileUseCase } from '@/application/use-cases/user/get-profile.use-case';
@@ -59,10 +58,10 @@ export class ProfileController {
   }
 
   @Patch('/')
-  @UsePipes(new ZodValidationPipe(updateProfileSchema))
   async updateProfile(
     @Request() req: RequestWithUser,
-    @Body() body: UpdateProfileDTO,
+    @Body(new ZodValidationPipe(updateProfileSchema))
+    body: UpdateProfileDTO,
   ): Promise<UserResponseDTO> {
     try {
       const userId = req.user.userId;
@@ -89,10 +88,10 @@ export class ProfileController {
   }
 
   @Patch('/business')
-  @UsePipes(new ZodValidationPipe(updateBusinessProfileSchema))
   async updateBusinessProfile(
     @Request() req: RequestWithUser,
-    @Body() body: UpdateBusinessProfileDTO,
+    @Body(new ZodValidationPipe(updateBusinessProfileSchema))
+    body: UpdateBusinessProfileDTO,
   ): Promise<UserResponseDTO> {
     try {
       const userId = req.user.userId;
