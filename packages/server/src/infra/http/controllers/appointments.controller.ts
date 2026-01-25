@@ -10,7 +10,6 @@ import {
   Query,
   Request,
   UseGuards,
-  UsePipes,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../jwt-auth.guard';
 import { ListAppointmentsUseCase } from '@/application/use-cases/appointment/list-appointments.use-case';
@@ -91,7 +90,10 @@ export class AppointmentsController {
       }
 
       if (error instanceof BusinessRuleError) {
-        throw new ForbiddenException(error.message);
+        if (error.code === 'APPOINTMENT_CONFIRM_FORBIDDEN') {
+          throw new ForbiddenException(error.message);
+        }
+        throw new BadRequestException(error.message);
       }
 
       throw new BadRequestException('An unexpected error occurred');
@@ -99,11 +101,11 @@ export class AppointmentsController {
   }
 
   @Patch('/:id/cancel')
-  @UsePipes(new ZodValidationPipe(cancelAppointmentSchema))
   async cancelAppointment(
     @Request() req: RequestWithUser,
     @Param('id') appointmentId: string,
-    @Body() body: CancelAppointmentDTO,
+    @Body(new ZodValidationPipe(cancelAppointmentSchema))
+    body: CancelAppointmentDTO,
   ): Promise<AppointmentResponse> {
     try {
       const providerId = req.user.userId;
@@ -122,7 +124,10 @@ export class AppointmentsController {
       }
 
       if (error instanceof BusinessRuleError) {
-        throw new ForbiddenException(error.message);
+        if (error.code === 'APPOINTMENT_CANCEL_FORBIDDEN') {
+          throw new ForbiddenException(error.message);
+        }
+        throw new BadRequestException(error.message);
       }
 
       throw new BadRequestException('An unexpected error occurred');
