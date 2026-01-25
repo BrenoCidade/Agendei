@@ -9,9 +9,9 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Request,
   UseGuards,
-  UsePipes,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../jwt-auth.guard';
 import { CreateServiceUseCase } from '@/application/use-cases/service/create-service.use-case';
@@ -49,13 +49,15 @@ export class ServicesController {
   @Get('/')
   async listServices(
     @Request() req: RequestWithUser,
+    @Query('onlyActive') onlyActive?: string,
   ): Promise<ServiceResponseDTO[]> {
     try {
       const providerId = req.user.userId;
+      const isOnlyActive = onlyActive === 'true';
 
       const services = await this.listServicesUseCase.execute({
         providerId,
-        onlyActive: false,
+        onlyActive: isOnlyActive,
       });
 
       return services.map((service) => ServiceResponseMapper.toDTO(service));
@@ -69,10 +71,10 @@ export class ServicesController {
   }
 
   @Post('/')
-  @UsePipes(new ZodValidationPipe(createServiceSchema))
   async createService(
     @Request() req: RequestWithUser,
-    @Body() body: CreateServiceDTO,
+    @Body(new ZodValidationPipe(createServiceSchema))
+    body: CreateServiceDTO,
   ): Promise<ServiceResponseDTO> {
     try {
       const providerId = req.user.userId;
@@ -100,11 +102,11 @@ export class ServicesController {
   }
 
   @Put('/:id')
-  @UsePipes(new ZodValidationPipe(updateServiceSchema))
   async updateService(
     @Request() req: RequestWithUser,
     @Param('id') serviceId: string,
-    @Body() body: UpdateServiceDTO,
+    @Body(new ZodValidationPipe(updateServiceSchema))
+    body: UpdateServiceDTO,
   ): Promise<ServiceResponseDTO> {
     try {
       const providerId = req.user.userId;

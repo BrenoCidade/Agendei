@@ -60,9 +60,8 @@ export class PrismaServiceRepository implements IServiceRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await this.prisma.service.update({
+    await this.prisma.service.delete({
       where: { id },
-      data: { isActive: false },
     });
   }
 }
