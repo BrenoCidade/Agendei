@@ -1,7 +1,7 @@
 import type { IEmailGateway } from '@/domain/gateways/IEmailGateway';
 import type { IUserRepository } from '@/domain/repositories/IUserRepository';
 import { Inject, Injectable } from '@nestjs/common';
-import { randomBytes } from 'crypto';
+import { randomUUID } from 'crypto';
 
 type ForgotPasswordInput = {
   email: string;
@@ -23,7 +23,7 @@ export class ForgotPasswordUseCase {
       return;
     }
 
-    const token = randomBytes(32).toString('hex');
+    const token = randomUUID();
     const expiration = new Date();
     expiration.setHours(expiration.getHours() + 1);
 

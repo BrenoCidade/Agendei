@@ -4,6 +4,8 @@ import {
   Body,
   ConflictException,
   Controller,
+  HttpCode,
+  HttpStatus,
   Post,
   UnauthorizedException,
   UsePipes,
@@ -23,7 +25,11 @@ import type {
 } from '@saas/shared';
 import { AuthenticateUserUseCase } from '@/application/use-cases/user/authenticate-user.use-case';
 import { JwtService } from '@nestjs/jwt';
-import { ValidationError } from '@/domain/errors';
+import {
+  BusinessRuleError,
+  NotFoundError,
+  ValidationError,
+} from '@/domain/errors';
 import { ResetPasswordUseCase } from '@/application/use-cases/user/reset-password.use-case';
 import { ForgotPasswordUseCase } from '@/application/use-cases/user/forgot-password.use-case';
 
@@ -54,6 +60,9 @@ export class AuthController {
       if (error instanceof ValidationError) {
         throw new ConflictException(error.message);
       }
+      if (error instanceof BusinessRuleError) {
+        throw new ConflictException(error.message);
+      }
       console.error(error);
 
       throw new BadRequestException('An unexpected error occurred');
@@ -61,6 +70,7 @@ export class AuthController {
   }
 
   @Post('/login')
+  @HttpCode(HttpStatus.OK)
   @UsePipes(new ZodValidationPipe(loginSchema))
   async login(@Body() body: LoginDTO) {
     const { email, password } = body;
@@ -85,18 +95,26 @@ export class AuthController {
       if (error instanceof ValidationError) {
         throw new UnauthorizedException('Invalid credentials');
       }
+      if (
+        error instanceof NotFoundError ||
+        error instanceof BusinessRuleError
+      ) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
 
       throw new BadRequestException('An unexpected error occurred');
     }
   }
 
   @Post('/forgot-password')
+  @HttpCode(HttpStatus.OK)
   @UsePipes(new ZodValidationPipe(forgotPasswordSchema))
   async forgotPassword(@Body() body: ForgotPasswordDTO) {
     await this.forgotPasswordUseCase.execute({ email: body.email });
   }
 
   @Post('/reset-password')
+  @HttpCode(HttpStatus.OK)
   @UsePipes(new ZodValidationPipe(resetPasswordSchema))
   async resetPassword(@Body() body: ResetPasswordDTO) {
     const { token, password } = body;
