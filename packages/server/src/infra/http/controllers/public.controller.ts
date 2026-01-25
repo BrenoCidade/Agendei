@@ -1,13 +1,13 @@
 import {
   BadRequestException,
   Body,
+  ConflictException,
   Controller,
   Get,
   NotFoundException,
   Param,
   Post,
   Query,
-  UsePipes,
 } from '@nestjs/common';
 import { GetProviderBySlugUseCase } from '@/application/use-cases/user/get-provider-by-slug.use-case';
 import { FetchAvailableSlotsUseCase } from '@/application/use-cases/appointment/fetch-available-slots.use-case';
@@ -93,10 +93,10 @@ export class PublicController {
   }
 
   @Get('/:slug/slots')
-  @UsePipes(new ZodValidationPipe(fetchAvailableSlotsSchema))
   async getAvailableSlots(
     @Param('slug') slug: string,
-    @Query() query: FetchAvailableSlotsDTO,
+    @Query(new ZodValidationPipe(fetchAvailableSlotsSchema))
+    query: FetchAvailableSlotsDTO,
   ): Promise<{ date: string; slots: string[] }> {
     try {
       const provider = await this.getProviderBySlugUseCase.execute({ slug });
@@ -127,10 +127,10 @@ export class PublicController {
   }
 
   @Post('/:slug/schedule')
-  @UsePipes(new ZodValidationPipe(publicScheduleSchema))
   async scheduleAppointment(
     @Param('slug') slug: string,
-    @Body() body: PublicScheduleDTO,
+    @Body(new ZodValidationPipe(publicScheduleSchema))
+    body: PublicScheduleDTO,
   ): Promise<AppointmentResponse> {
     try {
       const provider = await this.getProviderBySlugUseCase.execute({ slug });
@@ -153,7 +153,7 @@ export class PublicController {
       }
 
       if (error instanceof BusinessRuleError) {
-        throw new BadRequestException(error.message);
+        throw new ConflictException(error.message);
       }
 
       throw new BadRequestException('An unexpected error occurred');
