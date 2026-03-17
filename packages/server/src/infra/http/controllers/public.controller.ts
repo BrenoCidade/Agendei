@@ -4,21 +4,27 @@ import {
   ConflictException,
   Controller,
   Get,
+  Inject,
   NotFoundException,
   Param,
+  Patch,
   Post,
   Query,
 } from '@nestjs/common';
 import { GetProviderBySlugUseCase } from '@/application/use-cases/user/get-provider-by-slug.use-case';
 import { FetchAvailableSlotsUseCase } from '@/application/use-cases/appointment/fetch-available-slots.use-case';
 import { CreateAppointmentUseCase } from '@/application/use-cases/appointment/create-appointment.use-case';
+import { CancelAppointmentUseCase } from '@/application/use-cases/appointment/cancel-appointment.use-case';
 import { ListServicesUseCase } from '@/application/use-cases/service/list-services.use-case';
 import { ServiceResponseMapper } from '@/application/mappers/service-response.mapper';
 import { AppointmentResponseMapper } from '@/application/mappers/appointment-response.mapper';
+import type { ICustomerRepository } from '@/domain/repositories/ICustomerRepository';
+import type { IAppointmentRepository } from '@/domain/repositories/IAppointmentRepository';
 import { ZodValidationPipe } from '../pipes/zod-validation.pipe';
 import {
   fetchAvailableSlotsSchema,
   type FetchAvailableSlotsDTO,
+  type AppointmentStatus,
   type ServiceResponseDTO,
   type AppointmentResponse,
 } from '@saas/shared';
@@ -45,6 +51,30 @@ const publicScheduleSchema = z.object({
 
 type PublicScheduleDTO = z.infer<typeof publicScheduleSchema>;
 
+const publicCustomerAppointmentsQuerySchema = z.object({
+  phone: z
+    .string()
+    .transform((val) => val.replace(/\D/g, ''))
+    .pipe(z.string().regex(/^\d{10,15}$/, 'Invalid phone number')),
+});
+
+type PublicCustomerAppointmentsQueryDTO = z.infer<
+  typeof publicCustomerAppointmentsQuerySchema
+>;
+
+const publicCancelAppointmentSchema = z.object({
+  phone: z
+    .string()
+    .transform((val) => val.replace(/\D/g, ''))
+    .pipe(z.string().regex(/^\d{10,15}$/, 'Invalid phone number')),
+  reason: z
+    .string()
+    .min(10, 'The reason must be at least 10 characters long')
+    .max(500, 'The reason must be at most 500 characters long'),
+});
+
+type PublicCancelAppointmentDTO = z.infer<typeof publicCancelAppointmentSchema>;
+
 interface PublicProviderProfileDTO {
   slug: string;
   businessName: string;
@@ -53,13 +83,27 @@ interface PublicProviderProfileDTO {
   services: ServiceResponseDTO[];
 }
 
+interface PublicCustomerAppointmentDTO {
+  id: string;
+  startsAt: string;
+  endsAt: string;
+  status: AppointmentStatus;
+  serviceName: string;
+  providerName: string;
+}
+
 @Controller('/public')
 export class PublicController {
   constructor(
     private readonly getProviderBySlugUseCase: GetProviderBySlugUseCase,
     private readonly fetchAvailableSlotsUseCase: FetchAvailableSlotsUseCase,
     private readonly createAppointmentUseCase: CreateAppointmentUseCase,
+    private readonly cancelAppointmentUseCase: CancelAppointmentUseCase,
     private readonly listServicesUseCase: ListServicesUseCase,
+    @Inject('ICustomerRepository')
+    private readonly customerRepository: ICustomerRepository,
+    @Inject('IAppointmentRepository')
+    private readonly appointmentRepository: IAppointmentRepository,
   ) {}
 
   @Get('/:slug')
@@ -154,6 +198,94 @@ export class PublicController {
 
       if (error instanceof BusinessRuleError) {
         throw new ConflictException(error.message);
+      }
+
+      throw new BadRequestException('An unexpected error occurred');
+    }
+  }
+
+  @Get('/:slug/appointments')
+  async getCustomerAppointments(
+    @Param('slug') slug: string,
+    @Query(new ZodValidationPipe(publicCustomerAppointmentsQuerySchema))
+    query: PublicCustomerAppointmentsQueryDTO,
+  ): Promise<PublicCustomerAppointmentDTO[]> {
+    try {
+      const provider = await this.getProviderBySlugUseCase.execute({ slug });
+
+      const customer = await this.customerRepository.findByPhoneAndProvider(
+        query.phone,
+        provider.id,
+      );
+
+      if (!customer) {
+        return [];
+      }
+
+      const [appointments, services] = await Promise.all([
+        this.appointmentRepository.findByCustomerId(customer.id),
+        this.listServicesUseCase.execute({
+          providerId: provider.id,
+          onlyActive: false,
+        }),
+      ]);
+
+      const serviceNameById = new Map(services.map((s) => [s.id, s.name]));
+
+      return appointments
+        .filter((appointment) => appointment.providerId === provider.id)
+        .sort((a, b) => b.startsAt.getTime() - a.startsAt.getTime())
+        .map((appointment) => ({
+          id: appointment.id,
+          startsAt: appointment.startsAt.toISOString(),
+          endsAt: appointment.endsAt.toISOString(),
+          status: appointment.status,
+          serviceName: serviceNameById.get(appointment.serviceId) ?? 'Serviço',
+          providerName: provider.businessName,
+        }));
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw new NotFoundException(error.message);
+      }
+
+      throw new BadRequestException('An unexpected error occurred');
+    }
+  }
+
+  @Patch('/:slug/appointments/:id/cancel')
+  async cancelCustomerAppointment(
+    @Param('slug') slug: string,
+    @Param('id') appointmentId: string,
+    @Body(new ZodValidationPipe(publicCancelAppointmentSchema))
+    body: PublicCancelAppointmentDTO,
+  ): Promise<AppointmentResponse> {
+    try {
+      const provider = await this.getProviderBySlugUseCase.execute({ slug });
+
+      const customer = await this.customerRepository.findByPhoneAndProvider(
+        body.phone,
+        provider.id,
+      );
+
+      if (!customer) {
+        throw new NotFoundError('Customer not found', 'CUSTOMER_NOT_FOUND');
+      }
+
+      const appointment = await this.cancelAppointmentUseCase.execute({
+        appointmentId,
+        cancelReason: body.reason,
+        canceledBy: 'CUSTOMER',
+        actorId: customer.id,
+      });
+
+      return AppointmentResponseMapper.toDTO(appointment);
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw new NotFoundException(error.message);
+      }
+
+      if (error instanceof BusinessRuleError) {
+        throw new BadRequestException(error.message);
       }
 
       throw new BadRequestException('An unexpected error occurred');
