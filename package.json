@@ -6,12 +6,16 @@
     "packages/*"
   ],
   "scripts": {
+    "dev:all": "concurrently -n server,web -c cyan,magenta \"pnpm --filter server dev\" \"pnpm --filter @saas/web dev\"",
+    "dev": "pnpm dev:all",
+    "start:dev": "pnpm -r --parallel run start:dev",
     "lint": "pnpm -r --if-present lint",
     "type-check": "pnpm -r --if-present type-check",
     "build": "pnpm -r --if-present build",
     "build:shared": "pnpm --filter @saas/shared build"
   },
   "devDependencies": {
+    "concurrently": "^9.2.1",
     "prettier": "^3.4.2",
     "typescript": "^5.3.3"
   },

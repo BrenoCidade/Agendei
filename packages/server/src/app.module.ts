@@ -7,6 +7,7 @@ import { AvailabilityModule } from './infra/http/availability.module';
 import { ServicesModule } from './infra/http/services.module';
 import { PublicModule } from './infra/http/public.module';
 import { AppointmentsModule } from './infra/http/appointments.module';
+import { HealthController } from './infra/http/controllers/health.controller';
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import { AppointmentsModule } from './infra/http/appointments.module';
     PublicModule,
     AppointmentsModule,
   ],
-  controllers: [],
+  controllers: [HealthController],
   providers: [],
 })
 export class AppModule {}

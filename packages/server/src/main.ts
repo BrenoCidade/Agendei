@@ -7,6 +7,11 @@ async function bootstrap() {
 
     app.setGlobalPrefix('api');
 
+    app.enableCors({
+      origin: process.env.FRONTEND_URL || 'http://localhost:8080',
+      credentials: true,
+    });
+
     const port = process.env.PORT || 3333;
     await app.listen(port);
 
