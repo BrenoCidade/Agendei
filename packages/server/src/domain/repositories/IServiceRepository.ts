@@ -6,5 +6,6 @@ export interface IServiceRepository {
   findByIdOrFail(id: string): Promise<Service>;
   findByProviderId(providerId: string): Promise<Service[]>;
   findActiveByProviderId(providerId: string): Promise<Service[]>;
+  findByIds(ids: string[]): Promise<Service[]>;
   delete(id: string): Promise<void>;
 }

@@ -103,6 +103,11 @@ export const updateBusinessProfileSchema = z.object({
     )
     .trim()
     .toLowerCase(),
+  phone: z
+    .string()
+    .transform((val) => val.replace(/\D/g, ''))
+    .pipe(z.string().regex(/^\d{10,15}$/, 'Invalid phone number'))
+    .optional(),
 });
 
 export type UpdateBusinessProfileDTO = z.infer<

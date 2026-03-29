@@ -100,6 +100,7 @@ export class ProfileController {
         userId,
         businessName: body.businessName,
         slug: body.slug,
+        phone: body.phone,
       });
 
       return UserResponseMapper.toDTO(user);

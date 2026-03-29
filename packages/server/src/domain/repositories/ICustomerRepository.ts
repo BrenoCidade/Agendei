@@ -13,4 +13,5 @@ export interface ICustomerRepository {
     providerId: string,
   ): Promise<Customer | null>;
   findByProvider(providerId: string): Promise<Customer[]>;
+  findByIds(ids: string[]): Promise<Customer[]>;
 }
