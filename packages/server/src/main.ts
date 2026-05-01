@@ -1,9 +1,14 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { Logger } from 'nestjs-pino';
 
 async function bootstrap() {
   try {
-    const app = await NestFactory.create(AppModule);
+    const app = await NestFactory.create(AppModule, { bufferLogs: true });
+    app.useLogger(app.get(Logger));
+
+    // Koyeb usa proxy reverso; sem isso todos os IPs são do proxy
+    app.getHttpAdapter().getInstance().set('trust proxy', 1);
 
     app.setGlobalPrefix('api');
 
@@ -15,13 +20,14 @@ async function bootstrap() {
     const port = process.env.PORT || 3333;
     await app.listen(port);
 
-    console.log(`Server is running on http://localhost:${port}/api`);
+    app.get(Logger).log(`Server is running on http://localhost:${port}/api`);
   } catch (error) {
-    console.error('Error starting server:', error);
+    process.stderr.write(`Error starting server: ${String(error)}\n`);
     process.exit(1);
   }
 }
+
 bootstrap().catch((error) => {
-  console.error('Unexpected error during bootstrap:', error);
+  process.stderr.write(`Unexpected error during bootstrap: ${String(error)}\n`);
   process.exit(1);
 });
