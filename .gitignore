@@ -86,3 +86,15 @@ temp-uploads/
 *.crt
 
 storybook-static/
+
+# Env files — garantias explícitas por pacote
+packages/server/.env
+packages/server/.env.*
+packages/web/.env
+packages/web/.env.*
+
+# Variações de nome
+*.env
+
+# Koyeb config (pode conter referências a secrets)
+.koyeb.yaml
