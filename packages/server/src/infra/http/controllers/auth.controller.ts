@@ -11,6 +11,7 @@ import {
   UnauthorizedException,
   UsePipes,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { ZodValidationPipe } from '../pipes/zod-validation.pipe';
 import {
   forgotPasswordSchema,
@@ -46,6 +47,7 @@ export class AuthController {
     private readonly resetPasswordUseCase: ResetPasswordUseCase,
   ) {}
 
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('/register')
   @UsePipes(new ZodValidationPipe(registerUserSchema))
   async register(@Body() body: RegisterUserDTO) {
@@ -72,6 +74,7 @@ export class AuthController {
     }
   }
 
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('/login')
   @HttpCode(HttpStatus.OK)
   @UsePipes(new ZodValidationPipe(loginSchema))
@@ -109,6 +112,7 @@ export class AuthController {
     }
   }
 
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
   @Post('/forgot-password')
   @HttpCode(HttpStatus.OK)
   @UsePipes(new ZodValidationPipe(forgotPasswordSchema))

@@ -11,11 +11,13 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { GetProviderBySlugUseCase } from '@/application/use-cases/user/get-provider-by-slug.use-case';
 import { FetchAvailableSlotsUseCase } from '@/application/use-cases/appointment/fetch-available-slots.use-case';
 import { CreateAppointmentUseCase } from '@/application/use-cases/appointment/create-appointment.use-case';
 import { CancelAppointmentUseCase } from '@/application/use-cases/appointment/cancel-appointment.use-case';
 import { ListServicesUseCase } from '@/application/use-cases/service/list-services.use-case';
+import { GetAvailabilityUseCase } from '@/application/use-cases/availability/get-availability.use-case';
 import { ServiceResponseMapper } from '@/application/mappers/service-response.mapper';
 import { AppointmentResponseMapper } from '@/application/mappers/appointment-response.mapper';
 import type { ICustomerRepository } from '@/domain/repositories/ICustomerRepository';
@@ -27,6 +29,7 @@ import {
   type AppointmentStatus,
   type ServiceResponseDTO,
   type AppointmentResponse,
+  type PublicProviderProfileDTO,
 } from '@saas/shared';
 import { BusinessRuleError, NotFoundError } from '@/domain/errors';
 import { z } from 'zod';
@@ -75,14 +78,6 @@ const publicCancelAppointmentSchema = z.object({
 
 type PublicCancelAppointmentDTO = z.infer<typeof publicCancelAppointmentSchema>;
 
-interface PublicProviderProfileDTO {
-  slug: string;
-  businessName: string;
-  name: string;
-  phone: string | null;
-  services: ServiceResponseDTO[];
-}
-
 interface PublicCustomerAppointmentDTO {
   id: string;
   startsAt: string;
@@ -92,6 +87,7 @@ interface PublicCustomerAppointmentDTO {
   providerName: string;
 }
 
+@Throttle({ default: { limit: 60, ttl: 60000 } })
 @Controller('/public')
 export class PublicController {
   constructor(
@@ -100,6 +96,7 @@ export class PublicController {
     private readonly createAppointmentUseCase: CreateAppointmentUseCase,
     private readonly cancelAppointmentUseCase: CancelAppointmentUseCase,
     private readonly listServicesUseCase: ListServicesUseCase,
+    private readonly getAvailabilityUseCase: GetAvailabilityUseCase,
     @Inject('ICustomerRepository')
     private readonly customerRepository: ICustomerRepository,
     @Inject('IAppointmentRepository')
@@ -117,12 +114,25 @@ export class PublicController {
         providerId: provider.id,
         onlyActive: true,
       });
+      const availabilities = await this.getAvailabilityUseCase.execute({
+        providerId: provider.id,
+      });
 
       return {
         slug: provider.slug,
         businessName: provider.businessName,
         name: provider.name,
         phone: provider.phone,
+        primaryColor: provider.primaryColor,
+        secondaryColor: provider.secondaryColor,
+        accentColor: provider.accentColor,
+        availableDays: availabilities
+          .filter(
+            (availability) =>
+              availability.isActive && availability.slots.length > 0,
+          )
+          .map((availability) => availability.dayOfWeek)
+          .sort((a, b) => a - b),
         services: services.map((service) =>
           ServiceResponseMapper.toDTO(service),
         ),
@@ -145,7 +155,7 @@ export class PublicController {
     try {
       const provider = await this.getProviderBySlugUseCase.execute({ slug });
 
-      const date = new Date(query.date);
+      const date = this.parseDateOnly(query.date);
 
       const slots = await this.fetchAvailableSlotsUseCase.execute({
         providerId: provider.id,
@@ -290,5 +300,10 @@ export class PublicController {
 
       throw new BadRequestException('An unexpected error occurred');
     }
+  }
+
+  private parseDateOnly(date: string): Date {
+    const [year, month, day] = date.split('-').map(Number);
+    return new Date(year, month - 1, day);
   }
 }
