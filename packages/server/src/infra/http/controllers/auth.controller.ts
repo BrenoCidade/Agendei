@@ -6,6 +6,7 @@ import {
   Controller,
   HttpCode,
   HttpStatus,
+  Logger,
   Post,
   UnauthorizedException,
   UsePipes,
@@ -35,6 +36,8 @@ import { ForgotPasswordUseCase } from '@/application/use-cases/user/forgot-passw
 
 @Controller('/auth')
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
+
   constructor(
     private readonly registerUserUseCase: RegisterUserUseCase,
     private readonly authenticateUserUseCase: AuthenticateUserUseCase,
@@ -63,7 +66,7 @@ export class AuthController {
       if (error instanceof BusinessRuleError) {
         throw new ConflictException(error.message);
       }
-      console.error(error);
+      this.logger.error('Unexpected error in register', error);
 
       throw new BadRequestException('An unexpected error occurred');
     }
