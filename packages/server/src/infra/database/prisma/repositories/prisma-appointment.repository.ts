@@ -93,24 +93,19 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
     providerId: string,
     day: number,
   ): Promise<Appointment[]> {
-    const startOfDay = new Date(day);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(day);
-    endOfDay.setHours(23, 59, 59, 999);
     const appointments = await this.prisma.appointment.findMany({
       where: {
         providerId,
         startsAt: {
-          gte: startOfDay,
-          lte: endOfDay,
+          gte: new Date(),
         },
         status: { not: 'CANCELLED' },
       },
       orderBy: { startsAt: 'asc' },
     });
-    return appointments.map((appointment) =>
-      PrismaAppointmentMapper.toDomain(appointment),
-    );
+    return appointments
+      .map((appointment) => PrismaAppointmentMapper.toDomain(appointment))
+      .filter((appointment) => appointment.startsAt.getDay() === day);
   }
 
   async findOverlapping(
