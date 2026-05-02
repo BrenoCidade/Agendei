@@ -24,9 +24,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
-
-const DEFAULT_PUBLIC_SLUG =
-  import.meta.env.VITE_PUBLIC_PROVIDER_SLUG ?? "barbearia-estilo";
+import { getPublicProviderSlug } from "@/lib/public-provider";
 
 interface Appointment {
   id: string;
@@ -40,7 +38,7 @@ interface Appointment {
 export function ClientAppointmentsManager() {
   const PAGE_SIZE = 5;
 
-  const [slug, setSlug] = useState(DEFAULT_PUBLIC_SLUG);
+  const [slug, setSlug] = useState(() => getPublicProviderSlug());
   const [phone, setPhone] = useState("");
   const [appointments, setAppointments] = useState<Appointment[] | null>(null);
   const [statusFilter, setStatusFilter] = useState<"ALL" | Appointment["status"]>("ALL");

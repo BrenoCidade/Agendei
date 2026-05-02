@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { format, isSameDay } from "date-fns";
+import { format, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
@@ -8,6 +7,7 @@ interface DateTimePickerProps {
   selectedDate: Date | undefined;
   selectedTime: string | null;
   timeSlots: string[];
+  availableDays: number[];
   onDateSelect: (date: Date | undefined) => void;
   onTimeSelect: (time: string) => void;
 }
@@ -16,10 +16,11 @@ export function DateTimePicker({
   selectedDate,
   selectedTime,
   timeSlots,
+  availableDays,
   onDateSelect,
   onTimeSelect,
 }: DateTimePickerProps) {
-  const today = new Date();
+  const today = startOfDay(new Date());
 
   return (
     <section className="animate-fade-in">
@@ -36,7 +37,11 @@ export function DateTimePicker({
           selected={selectedDate}
           onSelect={onDateSelect}
           locale={ptBR}
-          disabled={(date) => date < today || date.getDay() === 0}
+          showOutsideDays={false}
+          disabled={(date) => {
+            const normalizedDate = startOfDay(date);
+            return normalizedDate < today || !availableDays.includes(normalizedDate.getDay());
+          }}
           className="rounded-lg pointer-events-auto mx-auto"
           classNames={{
             months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
@@ -45,7 +50,7 @@ export function DateTimePicker({
             caption_label: "text-sm font-medium capitalize",
             nav: "space-x-1 flex items-center",
             nav_button: cn(
-              "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 inline-flex items-center justify-center rounded-md border border-input hover:bg-accent hover:text-accent-foreground"
+              "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 inline-flex items-center justify-center rounded-md border border-input hover:bg-[hsl(var(--booking-accent-soft))] hover:text-[hsl(var(--booking-accent))]"
             ),
             nav_button_previous: "absolute left-1",
             nav_button_next: "absolute right-1",
@@ -53,12 +58,12 @@ export function DateTimePicker({
             head_row: "flex",
             head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem] capitalize",
             row: "flex w-full mt-2",
-            cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20 h-9 w-9",
+            cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-[hsl(var(--booking-accent-soft))] first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20 h-9 w-9",
             day: cn(
-              "h-9 w-9 p-0 font-normal aria-selected:opacity-100 inline-flex items-center justify-center rounded-md text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 hover:bg-accent hover:text-accent-foreground"
+              "h-9 w-9 p-0 font-normal aria-selected:opacity-100 inline-flex items-center justify-center rounded-md text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--booking-primary))] focus-visible:ring-offset-2 hover:bg-[hsl(var(--booking-accent-soft))] hover:text-[hsl(var(--booking-accent))]"
             ),
-            day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
-            day_today: "bg-accent text-accent-foreground font-semibold",
+            day_selected: "bg-[hsl(var(--booking-primary))] text-[hsl(var(--booking-primary-foreground))] hover:bg-[hsl(var(--booking-primary))] hover:text-[hsl(var(--booking-primary-foreground))]",
+            day_today: "bg-[hsl(var(--booking-accent-soft))] text-[hsl(var(--booking-accent))] font-semibold",
             day_outside: "text-muted-foreground opacity-50",
             day_disabled: "text-muted-foreground opacity-50",
             day_hidden: "invisible",
@@ -79,10 +84,10 @@ export function DateTimePicker({
                 onClick={() => onTimeSelect(time)}
                 className={cn(
                   "py-3 px-4 rounded-lg text-sm font-medium transition-all duration-200",
-                  "border-2 focus:outline-none focus:ring-2 focus:ring-primary/20",
+                  "border-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--booking-primary))]/20",
                   selectedTime === time
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-card text-foreground hover:border-primary/50"
+                    ? "border-[hsl(var(--booking-primary))] bg-[hsl(var(--booking-primary))] text-[hsl(var(--booking-primary-foreground))]"
+                    : "border-border bg-card text-foreground hover:border-[hsl(var(--booking-primary))]/50"
                 )}
               >
                 {time}

@@ -11,6 +11,61 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { api, getApiErrorMessage } from "@/lib/api";
+import { getReadableTextColor, isValidHexColor } from "@/lib/public-branding";
+
+function normalizeColorInput(value: string) {
+  return value.toUpperCase();
+}
+
+function ColorField({
+  id,
+  label,
+  value,
+  placeholder,
+  fallbackColor,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  placeholder: string;
+  fallbackColor: string;
+  onChange: (value: string) => void;
+}) {
+  const pickerValue = isValidHexColor(value) ? value : fallbackColor;
+
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id}>{label}</Label>
+      <div className="flex items-center gap-2">
+        <div className="relative h-10 w-10 shrink-0">
+          <input
+            id={`${id}-picker`}
+            type="color"
+            value={pickerValue}
+            onChange={(event) => onChange(normalizeColorInput(event.target.value))}
+            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+            aria-label={`${label} seletor visual`}
+          />
+          <button
+            type="button"
+            className="h-10 w-10 rounded-lg border border-border shadow-sm"
+            style={{ backgroundColor: pickerValue }}
+            aria-hidden="true"
+            tabIndex={-1}
+          />
+        </div>
+        <Input
+          id={id}
+          value={value}
+          onChange={(event) => onChange(normalizeColorInput(event.target.value))}
+          placeholder={placeholder}
+          maxLength={7}
+        />
+      </div>
+    </div>
+  );
+}
 
 export default function DashboardSettings() {
   const queryClient = useQueryClient();
@@ -19,6 +74,10 @@ export default function DashboardSettings() {
   const [businessName, setBusinessName] = useState("");
   const [slug, setSlug] = useState("");
   const [phone, setPhone] = useState("");
+  const [primaryColor, setPrimaryColor] = useState("");
+  const [secondaryColor, setSecondaryColor] = useState("");
+  const [accentColor, setAccentColor] = useState("");
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const { data: user, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["profile"],
@@ -36,6 +95,10 @@ export default function DashboardSettings() {
     setBusinessName(user.businessName);
     setSlug(user.slug);
     setPhone(user.phone ?? "");
+    setPrimaryColor(user.primaryColor ?? "");
+    setSecondaryColor(user.secondaryColor ?? "");
+    setAccentColor(user.accentColor ?? "");
+    setSaveError(null);
   }, [user]);
 
   const normalizedSlug = useMemo(
@@ -57,9 +120,20 @@ export default function DashboardSettings() {
     return (
       businessName !== user.businessName ||
       normalizedSlug !== user.slug ||
-      phone !== (user.phone ?? "")
+      phone !== (user.phone ?? "") ||
+      primaryColor !== (user.primaryColor ?? "") ||
+      secondaryColor !== (user.secondaryColor ?? "") ||
+      accentColor !== (user.accentColor ?? "")
     );
-  }, [businessName, normalizedSlug, phone, user]);
+  }, [
+    accentColor,
+    businessName,
+    normalizedSlug,
+    phone,
+    primaryColor,
+    secondaryColor,
+    user,
+  ]);
 
   const updateBusinessMutation = useMutation({
     mutationFn: async (payload: UpdateBusinessProfileDTO) => {
@@ -69,24 +143,50 @@ export default function DashboardSettings() {
     onSuccess: async (updatedUser) => {
       queryClient.setQueryData(["profile"], updatedUser);
       await queryClient.invalidateQueries({ queryKey: ["profile"] });
+      setSaveError(null);
       toast({ title: "Configuracoes do negocio atualizadas." });
     },
     onError: (mutationError) => {
+      const message = getApiErrorMessage(
+        mutationError,
+        "Nao foi possivel salvar as configuracoes do negocio.",
+      );
+      setSaveError(message);
       toast({
-        title: getApiErrorMessage(
-          mutationError,
-          "Nao foi possivel salvar as configuracoes do negocio.",
-        ),
+        title: message,
         variant: "destructive",
       });
     },
   });
 
   const handleSaveBusiness = () => {
+    const normalizedPrimaryColor = primaryColor.trim().toUpperCase();
+    const normalizedSecondaryColor = secondaryColor.trim().toUpperCase();
+    const normalizedAccentColor = accentColor.trim().toUpperCase();
+
+    if (!isValidHexColor(normalizedPrimaryColor)) {
+      setSaveError("A cor primaria precisa estar em HEX, como #1D4ED8.");
+      return;
+    }
+
+    if (!isValidHexColor(normalizedSecondaryColor)) {
+      setSaveError("A cor secundaria precisa estar em HEX, como #DBEAFE.");
+      return;
+    }
+
+    if (!isValidHexColor(normalizedAccentColor)) {
+      setSaveError("A cor de destaque precisa estar em HEX, como #F97316.");
+      return;
+    }
+
+    setSaveError(null);
     updateBusinessMutation.mutate({
       businessName: businessName.trim(),
       slug: normalizedSlug,
       phone: phone.trim() || undefined,
+      primaryColor: normalizedPrimaryColor,
+      secondaryColor: normalizedSecondaryColor,
+      accentColor: normalizedAccentColor,
     });
   };
 
@@ -175,6 +275,103 @@ export default function DashboardSettings() {
                     placeholder="11999999999"
                   />
                 </div>
+
+                <div className="space-y-4 rounded-xl border border-border bg-muted/30 p-4">
+                  <div>
+                    <h4 className="font-medium text-foreground">
+                      Cores da pagina publica
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      Defina a identidade visual do link de agendamento dos seus clientes.
+                    </p>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <div className="space-y-2">
+                      <ColorField
+                        id="primary-color"
+                        label="Cor primaria"
+                        value={primaryColor}
+                        onChange={setPrimaryColor}
+                        placeholder="#1D4ED8"
+                        fallbackColor="#1D4ED8"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <ColorField
+                        id="secondary-color"
+                        label="Cor secundaria"
+                        value={secondaryColor}
+                        onChange={setSecondaryColor}
+                        placeholder="#DBEAFE"
+                        fallbackColor="#DBEAFE"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <ColorField
+                        id="accent-color"
+                        label="Cor de destaque"
+                        value={accentColor}
+                        onChange={setAccentColor}
+                        placeholder="#F97316"
+                        fallbackColor="#F97316"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-dashed border-border bg-background p-4">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Previa local
+                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      A aparencia abaixo ajuda a revisar as cores, mas so vale para os clientes
+                      depois que voce salvar.
+                    </p>
+                    <div className="mt-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
+                      <div className="flex items-center justify-between gap-3 rounded-xl border border-border px-4 py-3">
+                        <div>
+                          <p className="font-semibold text-foreground">{businessName || "Seu negocio"}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Como o cliente vai perceber seu tema
+                          </p>
+                        </div>
+                        <span
+                          className="rounded-full px-3 py-1 text-xs font-semibold"
+                          style={{
+                            backgroundColor: accentColor || "#F97316",
+                            color: getReadableTextColor(accentColor || "#F97316"),
+                          }}
+                        >
+                          Aberto
+                        </span>
+                      </div>
+                      <div
+                        className="mt-4 rounded-xl p-4"
+                        style={{ backgroundColor: secondaryColor || "#DBEAFE" }}
+                      >
+                        <div
+                          className="rounded-xl px-4 py-3 text-sm font-semibold"
+                          style={{
+                            backgroundColor: primaryColor || "#1D4ED8",
+                            color: getReadableTextColor(primaryColor || "#1D4ED8"),
+                          }}
+                        >
+                          Servico selecionado
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {saveError && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Falha ao salvar o branding</AlertTitle>
+                    <AlertDescription>{saveError}</AlertDescription>
+                  </Alert>
+                )}
               </div>
             )}
 

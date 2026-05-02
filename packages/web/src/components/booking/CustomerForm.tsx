@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { User, Phone, Mail } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,7 +47,7 @@ export function CustomerForm({ name, email, phone, onNameChange, onEmailChange, 
               placeholder="Digite seu nome"
               value={name}
               onChange={(e) => onNameChange(e.target.value)}
-              className="pl-10 h-12 rounded-xl border-border bg-card focus:border-primary focus:ring-primary"
+              className="pl-10 h-12 rounded-xl border-border bg-card focus:border-[hsl(var(--booking-primary))] focus:ring-[hsl(var(--booking-primary))]"
             />
           </div>
         </div>
@@ -65,7 +64,7 @@ export function CustomerForm({ name, email, phone, onNameChange, onEmailChange, 
               placeholder="voce@exemplo.com"
               value={email}
               onChange={(e) => onEmailChange(e.target.value)}
-              className="pl-10 h-12 rounded-xl border-border bg-card focus:border-primary focus:ring-primary"
+              className="pl-10 h-12 rounded-xl border-border bg-card focus:border-[hsl(var(--booking-primary))] focus:ring-[hsl(var(--booking-primary))]"
             />
           </div>
         </div>
@@ -82,7 +81,7 @@ export function CustomerForm({ name, email, phone, onNameChange, onEmailChange, 
               placeholder="(00) 00000-0000"
               value={phone}
               onChange={handlePhoneChange}
-              className="pl-10 h-12 rounded-xl border-border bg-card focus:border-primary focus:ring-primary"
+              className="pl-10 h-12 rounded-xl border-border bg-card focus:border-[hsl(var(--booking-primary))] focus:ring-[hsl(var(--booking-primary))]"
             />
           </div>
         </div>

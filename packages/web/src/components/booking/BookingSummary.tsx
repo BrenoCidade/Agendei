@@ -43,7 +43,7 @@ export function BookingSummary({
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 text-foreground">
-              <Scissors className="h-4 w-4 text-primary flex-shrink-0" />
+              <Scissors className="h-4 w-4 text-[hsl(var(--booking-primary))] flex-shrink-0" />
               <span className="font-medium truncate">{service.name}</span>
             </div>
             
@@ -63,7 +63,7 @@ export function BookingSummary({
 
           <div className="flex items-center gap-3">
             <div className="text-right">
-              <span className="text-lg font-bold text-primary">
+              <span className="text-lg font-bold text-[hsl(var(--booking-primary))]">
                 R$ {service.price.toFixed(2).replace('.', ',')}
               </span>
             </div>
@@ -73,7 +73,7 @@ export function BookingSummary({
               disabled={!isComplete || isConfirming}
               className={cn(
                 "h-12 px-6 rounded-xl font-semibold transition-all duration-200",
-                "bg-primary text-primary-foreground hover:bg-primary/90",
+                "bg-[hsl(var(--booking-primary))] text-[hsl(var(--booking-primary-foreground))] hover:opacity-90",
                 "disabled:opacity-50 disabled:cursor-not-allowed"
               )}
             >

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MoreHorizontal, Check, X, Clock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -65,6 +65,10 @@ export function AppointmentList({ appointments: initialAppointments }: Appointme
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
 
+  useEffect(() => {
+    setAppointments(initialAppointments);
+  }, [initialAppointments]);
+
   const handleCancelClick = (appointment: Appointment) => {
     setSelectedAppointment(appointment);
     setCancelDialogOpen(true);
@@ -94,6 +98,11 @@ export function AppointmentList({ appointments: initialAppointments }: Appointme
 
   return (
     <>
+      {appointments.length === 0 ? (
+        <Card className="p-6 text-center text-sm text-muted-foreground">
+          Nenhum agendamento encontrado para hoje.
+        </Card>
+      ) : (
       <div className="space-y-3">
         {appointments.map((appointment, index) => {
           const status = statusConfig[appointment.status];
@@ -185,6 +194,7 @@ export function AppointmentList({ appointments: initialAppointments }: Appointme
           );
         })}
       </div>
+      )}
 
       <CancelAppointmentDialog
         isOpen={cancelDialogOpen}
