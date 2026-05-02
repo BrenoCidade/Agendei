@@ -73,7 +73,7 @@ export function DashboardHeader({ title, onMenuClick }: DashboardHeaderProps) {
             </div>
           </div>
           <DropdownMenuSeparator />
-          <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => navigate("/dashboard/configuracoes")}>
+          <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => navigate("/dashboard/settings")}>
             <User className="h-4 w-4" />
             Meu Perfil
           </DropdownMenuItem>
