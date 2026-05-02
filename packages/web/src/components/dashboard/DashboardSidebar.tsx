@@ -22,9 +22,7 @@ export function DashboardSidebar({ onNavigate }: DashboardSidebarProps) {
       {/* Logo */}
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center gap-2">
-          <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center">
-            <Calendar className="h-5 w-5 text-primary-foreground" />
-          </div>
+          <img src="/logo-icon.png" alt="Agendei Logo" className="h-9 w-9 object-contain" />
           <span className="text-xl font-bold text-foreground">Agendei</span>
         </div>
       </div>

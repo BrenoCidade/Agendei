@@ -39,7 +39,7 @@ const PublicEntry = () => {
     return <Navigate to={`/${slug}`} replace />;
   }
 
-  return <Index />;
+  return <Navigate to="/login" replace />;
 };
 
 const App = () => (
