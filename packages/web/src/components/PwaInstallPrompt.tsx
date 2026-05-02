@@ -1,34 +1,68 @@
 import React, { useState, useEffect } from "react";
-import { Share, X } from "lucide-react";
+import { Share, X, Download } from "lucide-react";
 
 export function PwaInstallPrompt() {
   const [showPrompt, setShowPrompt] = useState(false);
   const [isTooltipOpen, setIsTooltipOpen] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isIos, setIsIos] = useState(false);
 
   useEffect(() => {
-    // Detects if device is on iOS 
-    const isIos = () => {
+    // Check if running on iOS
+    const checkIos = () => {
       const userAgent = window.navigator.userAgent.toLowerCase();
-      // Safe checks for iOS user agent
       return /iphone|ipad|ipod/.test(userAgent);
     };
 
-    // Detects if device is in standalone mode (already installed)
+    // Check if already installed (standalone mode)
     const isInStandaloneMode = () =>
       ("standalone" in window.navigator && (window.navigator as any).standalone) ||
       window.matchMedia("(display-mode: standalone)").matches;
 
-    // Show prompt if on iOS and not already installed
-    if (isIos() && !isInStandaloneMode()) {
+    const ios = checkIos();
+    setIsIos(ios);
+
+    // Default to true for iOS if not installed
+    if (ios && !isInStandaloneMode()) {
       setShowPrompt(true);
     }
+
+    // Listen for the native install prompt event (Android / Desktop Chrome)
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault(); // Prevent the mini-infobar from appearing automatically
+      setDeferredPrompt(e);
+      if (!isInStandaloneMode()) {
+        setShowPrompt(true);
+      }
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+
+    // Cleanup listener
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    };
   }, []);
+
+  const handleInstallClick = async () => {
+    if (isIos) {
+      setIsTooltipOpen(true);
+    } else if (deferredPrompt) {
+      // Show the native Android install prompt
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === "accepted") {
+        setShowPrompt(false);
+      }
+      setDeferredPrompt(null);
+    }
+  };
 
   if (!showPrompt) return null;
 
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {isTooltipOpen && (
+      {isTooltipOpen && isIos && (
         <div className="bg-white text-gray-900 text-sm p-4 rounded-xl shadow-xl border border-gray-100 mb-3 w-72 relative">
           <button 
             onClick={() => setIsTooltipOpen(false)}
@@ -47,12 +81,12 @@ export function PwaInstallPrompt() {
         </div>
       )}
 
-      {!isTooltipOpen && (
+      {(!isTooltipOpen || !isIos) && (
         <button
-          onClick={() => setIsTooltipOpen(true)}
+          onClick={handleInstallClick}
           className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-full shadow-lg flex items-center gap-2 transition-transform hover:scale-105 active:scale-95"
         >
-          <Share size={18} />
+          {isIos ? <Share size={18} /> : <Download size={18} />}
           <span>Instalar App</span>
         </button>
       )}
