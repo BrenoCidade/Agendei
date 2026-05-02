@@ -7,15 +7,16 @@ import { AuthenticateUserUseCase } from '@/application/use-cases/user/authentica
 import { ConfigService } from '@nestjs/config';
 import { BcryptPasswordService } from '../service/BcryptPasswordService';
 import { AuthController } from './controllers/auth.controller';
-import { MockEmailGateway } from '../service/MockEmailGateway';
 import { ResetPasswordUseCase } from '@/application/use-cases/user/reset-password.use-case';
 import { ForgotPasswordUseCase } from '@/application/use-cases/user/forgot-password.use-case';
 import { RegisterUserUseCase } from '@/application/use-cases/user/register-user.use-case';
+import { NotificationModule } from './notification.module';
 
 @Module({
   imports: [
     PassportModule,
     DatabaseModule,
+    NotificationModule,
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
         secret: configService.getOrThrow<string>('JWT_SECRET'),
@@ -34,10 +35,6 @@ import { RegisterUserUseCase } from '@/application/use-cases/user/register-user.
     RegisterUserUseCase,
     ForgotPasswordUseCase,
     ResetPasswordUseCase,
-    {
-      provide: 'IEmailGateway',
-      useClass: MockEmailGateway,
-    },
   ],
   controllers: [AuthController],
   exports: [

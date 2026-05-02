@@ -1,11 +1,13 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from 'nestjs-pino';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 
 async function bootstrap() {
   try {
     const app = await NestFactory.create(AppModule, { bufferLogs: true });
     app.useLogger(app.get(Logger));
+    app.useWebSocketAdapter(new IoAdapter(app));
 
     // Koyeb usa proxy reverso; sem isso todos os IPs são do proxy
     app.getHttpAdapter().getInstance().set('trust proxy', 1);

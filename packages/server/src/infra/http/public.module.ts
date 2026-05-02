@@ -6,9 +6,11 @@ import { CreateAppointmentUseCase } from '@/application/use-cases/appointment/cr
 import { CancelAppointmentUseCase } from '@/application/use-cases/appointment/cancel-appointment.use-case';
 import { ListServicesUseCase } from '@/application/use-cases/service/list-services.use-case';
 import { PublicController } from './controllers/public.controller';
+import { AvailabilityModule } from './availability.module';
+import { NotificationModule } from './notification.module';
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [DatabaseModule, AvailabilityModule, NotificationModule],
   providers: [
     GetProviderBySlugUseCase,
     FetchAvailableSlotsUseCase,

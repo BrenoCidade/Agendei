@@ -54,4 +54,8 @@ export class InMemoryCustomerRepository implements ICustomerRepository {
       this.customers.filter((c) => c.providerId === providerId),
     );
   }
+
+  findByIds(ids: string[]): Promise<Customer[]> {
+    return Promise.resolve(this.customers.filter((c) => ids.includes(c.id)));
+  }
 }

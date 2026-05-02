@@ -4,9 +4,10 @@ import { ListAppointmentsUseCase } from '@/application/use-cases/appointment/lis
 import { ConfirmAppointmentUseCase } from '@/application/use-cases/appointment/confirm-appointment.use-case';
 import { CancelAppointmentUseCase } from '@/application/use-cases/appointment/cancel-appointment.use-case';
 import { AppointmentsController } from './controllers/appointments.controller';
+import { NotificationModule } from './notification.module';
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [DatabaseModule, NotificationModule],
   providers: [
     ListAppointmentsUseCase,
     ConfirmAppointmentUseCase,

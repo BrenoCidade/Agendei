@@ -1,19 +1,43 @@
 import { CreateAppointmentUseCase } from '../../../../src/application/use-cases/appointment/create-appointment.use-case';
 import { Customer } from '../../../../src/domain/entities/customer';
-import { InMemoryCustomerRepository } from '../../../repositories/in-memory-customer.repository';
+import type { IEmailGateway } from '../../../../src/domain/gateways/IEmailGateway';
+import type { INotificationGateway } from '../../../../src/domain/gateways/INotificationGateway';
 import { InMemoryAppointmentRepository } from '../../../repositories/in-memory-appointment.repository';
+import { InMemoryCustomerRepository } from '../../../repositories/in-memory-customer.repository';
+import { InMemoryServiceRepository } from '../../../repositories/in-memory-service.repository';
+import { InMemoryUserRepository } from '../../../repositories/in-memory-user.repository';
+
+const mockEmailGateway: IEmailGateway = {
+  sendRecoveryEmail: jest.fn(),
+  sendAppointmentCreatedToCustomer: jest.fn(),
+  sendAppointmentCreatedToProvider: jest.fn(),
+  sendAppointmentCancelledByCustomer: jest.fn(),
+  sendAppointmentCancelledByProvider: jest.fn(),
+};
+
+const mockNotificationGateway: INotificationGateway = {
+  notifyProvider: jest.fn(),
+};
 
 describe('CreateAppointmentUseCase', () => {
   let appointmentRepository: InMemoryAppointmentRepository;
   let customerRepository: InMemoryCustomerRepository;
+  let userRepository: InMemoryUserRepository;
+  let serviceRepository: InMemoryServiceRepository;
   let createAppointmentUseCase: CreateAppointmentUseCase;
 
   beforeEach(() => {
     appointmentRepository = new InMemoryAppointmentRepository();
     customerRepository = new InMemoryCustomerRepository();
+    userRepository = new InMemoryUserRepository();
+    serviceRepository = new InMemoryServiceRepository();
     createAppointmentUseCase = new CreateAppointmentUseCase(
       appointmentRepository,
       customerRepository,
+      userRepository,
+      serviceRepository,
+      mockEmailGateway,
+      mockNotificationGateway,
     );
   });
 
