@@ -1,7 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Availability } from '@/domain/entities/availability';
-import { NotFoundError } from '@/domain/errors';
+import { BusinessRuleError, NotFoundError } from '@/domain/errors';
 import type { IAvailabilityRepository } from '@/domain/repositories/IAvailabilityRepository';
+import type { IAppointmentRepository } from '@/domain/repositories/IAppointmentRepository';
 import type { IUserRepository } from '@/domain/repositories/IUserRepository';
 
 interface TimeSlot {
@@ -22,6 +23,8 @@ export class SetWeekAvailabilityUseCase {
   constructor(
     @Inject('IAvailabilityRepository')
     private readonly availabilityRepository: IAvailabilityRepository,
+    @Inject('IAppointmentRepository')
+    private readonly appointmentRepository: IAppointmentRepository,
     @Inject('IUserRepository')
     private readonly userRepository: IUserRepository,
   ) {}
@@ -37,13 +40,39 @@ export class SetWeekAvailabilityUseCase {
       input.availabilities.map((availability) => availability.dayOfWeek),
     );
 
-    const existingAvailabilities = await this.availabilityRepository.findByProviderId(
-      input.providerId,
+    const existingAvailabilities =
+      await this.availabilityRepository.findByProviderId(input.providerId);
+
+    const removedDays = existingAvailabilities
+      .filter((availability) => !requestedDays.has(availability.dayOfWeek))
+      .map((availability) => availability.dayOfWeek);
+
+    const blockedDays = await Promise.all(
+      removedDays.map(async (dayOfWeek) => {
+        const futureAppointments =
+          await this.appointmentRepository.findFutureByProviderAndDay(
+            input.providerId,
+            dayOfWeek,
+          );
+
+        return futureAppointments.length > 0 ? dayOfWeek : null;
+      }),
     );
+
+    const daysWithFutureAppointments = blockedDays.filter(
+      (dayOfWeek): dayOfWeek is number => dayOfWeek !== null,
+    );
+
+    if (daysWithFutureAppointments.length > 0) {
+      throw new BusinessRuleError(
+        'Cannot remove availability for days with future appointments',
+        'AVAILABILITY_HAS_APPOINTMENTS',
+      );
+    }
 
     await Promise.all(
       existingAvailabilities
-        .filter((availability) => !requestedDays.has(availability.dayOfWeek))
+        .filter((availability) => removedDays.includes(availability.dayOfWeek))
         .map((availability) =>
           this.availabilityRepository.deleteByProviderAndDay(
             input.providerId,

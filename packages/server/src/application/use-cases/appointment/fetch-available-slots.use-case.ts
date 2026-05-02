@@ -47,7 +47,7 @@ export class FetchAvailableSlotsUseCase {
       throw new BusinessRuleError('Service is not active', 'SERVICE_INACTIVE');
     }
 
-    const dayOfWeek = input.date.getUTCDay();
+    const dayOfWeek = input.date.getDay();
     const availability =
       await this.availabilityRepository.findByProviderIdAndDay(
         input.providerId,
@@ -59,10 +59,10 @@ export class FetchAvailableSlotsUseCase {
     }
 
     const startOfDay = new Date(input.date);
-    startOfDay.setUTCHours(0, 0, 0, 0);
+    startOfDay.setHours(0, 0, 0, 0);
 
     const endOfDay = new Date(input.date);
-    endOfDay.setUTCHours(23, 59, 59, 999);
+    endOfDay.setHours(23, 59, 59, 999);
 
     const appointments =
       await this.appointmentRepository.findByProviderAndDateRange(
