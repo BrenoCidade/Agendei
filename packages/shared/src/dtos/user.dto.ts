@@ -1,4 +1,11 @@
 import z from 'zod';
+import { serviceResponseSchema } from './service.dto';
+
+const hexColorSchema = z
+  .string()
+  .trim()
+  .regex(/^#[0-9A-Fa-f]{6}$/, 'Colors must be valid HEX values like #1D4ED8')
+  .transform((value) => value.toUpperCase());
 
 export const baseUserSchema = z.object({
   name: z
@@ -54,6 +61,9 @@ export const userResponseSchema = z.object({
   phone: z.string().nullable(),
   businessName: z.string(),
   slug: z.string(),
+  primaryColor: z.string().nullable(),
+  secondaryColor: z.string().nullable(),
+  accentColor: z.string().nullable(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
 });
@@ -65,6 +75,11 @@ export const publicProviderProfileSchema = z.object({
   businessName: z.string(),
   name: z.string(),
   phone: z.string().nullable(),
+  primaryColor: z.string().nullable(),
+  secondaryColor: z.string().nullable(),
+  accentColor: z.string().nullable(),
+  availableDays: z.array(z.number().int().min(0).max(6)),
+  services: z.array(serviceResponseSchema),
 });
 
 export type PublicProviderProfileDTO = z.infer<
@@ -108,6 +123,9 @@ export const updateBusinessProfileSchema = z.object({
     .transform((val) => val.replace(/\D/g, ''))
     .pipe(z.string().regex(/^\d{10,15}$/, 'Invalid phone number'))
     .optional(),
+  primaryColor: hexColorSchema.optional(),
+  secondaryColor: hexColorSchema.optional(),
+  accentColor: hexColorSchema.optional(),
 });
 
 export type UpdateBusinessProfileDTO = z.infer<
