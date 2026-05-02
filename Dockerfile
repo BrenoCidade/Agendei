@@ -22,7 +22,7 @@ RUN pnpm --filter server exec prisma generate
 RUN pnpm --filter server build
 
 # Criar deployment isolado: resolve workspace: deps e filtra só prod
-RUN pnpm --filter server deploy --prod /deploy
+RUN pnpm --filter server deploy --prod --legacy /deploy
 
 # ── Stage 2: Runner ───────────────────────────────────────────────────────────
 FROM node:20-alpine AS runner
