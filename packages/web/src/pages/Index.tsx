@@ -7,13 +7,19 @@ import { DateTimePicker } from "@/components/booking/DateTimePicker";
 import { CustomerForm } from "@/components/booking/CustomerForm";
 import { BookingSummary } from "@/components/booking/BookingSummary";
 import { StepIndicator } from "@/components/booking/StepIndicator";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
+import { buildPublicBrandingStyle } from "@/lib/public-branding";
 import type {
   AppointmentResponse,
   AvailableSlotsResponseDTO,
+  PublicProviderProfileDTO,
   ServiceResponseDTO,
 } from "@saas/shared";
+import { AlertCircle } from "lucide-react";
+import { useParams } from "react-router-dom";
 
 const steps = [
   { id: 1, label: "Serviço" },
@@ -30,20 +36,10 @@ interface Service {
   description: string;
 }
 
-interface PublicProviderProfileDTO {
-  slug: string;
-  businessName: string;
-  name: string;
-  phone: string | null;
-  services: ServiceResponseDTO[];
-}
-
-const DEFAULT_PUBLIC_SLUG =
-  import.meta.env.VITE_PUBLIC_PROVIDER_SLUG ?? "barbearia-estilo";
-
 const Index = () => {
   const { toast } = useToast();
-  const providerSlug = DEFAULT_PUBLIC_SLUG;
+  const { slug } = useParams<{ slug: string }>();
+  const providerSlug = slug?.trim() ?? "";
 
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
@@ -61,6 +57,7 @@ const Index = () => {
       );
       return res.data;
     },
+    enabled: Boolean(providerSlug),
   });
 
   const services: Service[] = (provider?.services ?? []).map((service) => ({
@@ -171,9 +168,35 @@ const Index = () => {
   };
 
   const timeSlots = slotsData?.slots ?? [];
+  const bookingThemeStyle = buildPublicBrandingStyle({
+    primaryColor: provider?.primaryColor ?? null,
+    secondaryColor: provider?.secondaryColor ?? null,
+    accentColor: provider?.accentColor ?? null,
+  });
+
+  if (!providerSlug) {
+    return (
+      <div className="min-h-screen bg-background p-4">
+        <div className="mx-auto flex min-h-screen max-w-lg items-center justify-center">
+          <Card className="w-full p-6">
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Link de agendamento invalido</AlertTitle>
+              <AlertDescription className="space-y-2">
+                <p>Use o link enviado pelo prestador para acessar os horarios disponiveis.</p>
+                <p className="text-xs text-muted-foreground">
+                  Exemplo: <span className="font-mono">/seu-negocio</span>
+                </p>
+              </AlertDescription>
+            </Alert>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-background pb-32">
+    <div className="booking-theme min-h-screen bg-background pb-32" style={bookingThemeStyle}>
       <ProviderHeader
         name={provider?.businessName ?? "Carregando..."}
         avatar="https://github.com/shadcn.png"
@@ -199,6 +222,7 @@ const Index = () => {
             selectedDate={selectedDate}
             selectedTime={selectedTime}
             timeSlots={isLoadingSlots ? [] : timeSlots}
+            availableDays={provider?.availableDays ?? []}
             onDateSelect={handleDateSelect}
             onTimeSelect={handleTimeSelect}
           />

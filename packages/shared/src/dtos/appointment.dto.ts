@@ -86,6 +86,7 @@ export type CancelAppointmentDTO = z.infer<typeof cancelAppointmentSchema>;
 export const appointmentResponseSchema = baseAppointmentSchema.extend({
   id: z.string().uuid(),
   status: AppointmentStatusSchema,
+  observation: z.string().nullable().optional(),
   cancelReason: z.string().nullable(),
   canceledBy: CancelationActorSchema.nullable(),
   canceledAt: z.string().datetime().nullable(),
@@ -93,6 +94,21 @@ export const appointmentResponseSchema = baseAppointmentSchema.extend({
   updatedAt: z.string().datetime(),
   durationInMinutes: z.number().int().positive().optional(),
   price: z.number().positive().optional(),
+  customer: z
+    .object({
+      id: z.string().uuid(),
+      name: z.string(),
+      phone: z.string().nullable(),
+    })
+    .optional(),
+  service: z
+    .object({
+      id: z.string().uuid(),
+      name: z.string(),
+      durationInMinutes: z.number().int().positive(),
+      priceInCents: z.number().int().nonnegative(),
+    })
+    .optional(),
 });
 
 export type AppointmentResponse = z.infer<typeof appointmentResponseSchema>;

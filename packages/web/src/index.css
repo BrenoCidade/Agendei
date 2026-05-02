@@ -108,6 +108,17 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }
+
+  .booking-theme {
+    --booking-primary: var(--primary);
+    --booking-primary-foreground: var(--primary-foreground);
+    --booking-secondary: var(--secondary);
+    --booking-secondary-foreground: var(--secondary-foreground);
+    --booking-accent: var(--accent);
+    --booking-accent-foreground: var(--accent-foreground);
+    --booking-primary-soft: var(--primary-light);
+    --booking-accent-soft: var(--accent);
+  }
 }
 
 @layer utilities {

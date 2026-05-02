@@ -1,10 +1,12 @@
-import { CalendarDays, Clock, DollarSign } from "lucide-react";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import type { AppointmentResponse, ServiceResponseDTO } from "@saas/shared";
-import { StatCard } from "@/components/dashboard/StatCard";
+import { AlertCircle, CalendarDays, Clock, DollarSign, RefreshCcw } from "lucide-react";
+import type { AppointmentResponse } from "@saas/shared";
 import { AppointmentList } from "@/components/dashboard/AppointmentList";
-import { api } from "@/lib/api";
+import { StatCard } from "@/components/dashboard/StatCard";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { api, getApiErrorMessage } from "@/lib/api";
 
 function toDateOnly(value: Date) {
   return value.toISOString().split("T")[0];
@@ -14,32 +16,25 @@ export default function Dashboard() {
   const today = useMemo(() => new Date(), []);
   const dateParam = useMemo(() => toDateOnly(today), [today]);
 
-  const { data: appointments = [], isLoading: isLoadingAppointments } = useQuery<AppointmentResponse[]>({
+  const {
+    data: appointments = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery<AppointmentResponse[]>({
     queryKey: ["dashboard-appointments", dateParam],
     queryFn: async () => {
-      const res = await api.get<AppointmentResponse[]>("/appointments", {
+      const response = await api.get<AppointmentResponse[]>("/appointments", {
         params: {
           startDate: dateParam,
           endDate: dateParam,
         },
       });
 
-      return res.data;
+      return response.data;
     },
   });
-
-  const { data: services = [], isLoading: isLoadingServices } = useQuery<ServiceResponseDTO[]>({
-    queryKey: ["services"],
-    queryFn: async () => {
-      const res = await api.get<ServiceResponseDTO[]>("/services");
-      return res.data;
-    },
-  });
-
-  const serviceById = useMemo(
-    () => new Map(services.map((service) => [service.id, service])),
-    [services],
-  );
 
   const appointmentsToday = useMemo(
     () =>
@@ -54,71 +49,76 @@ export default function Dashboard() {
             hour: "2-digit",
             minute: "2-digit",
           }),
-          customer: `Cliente #${appointment.customerId.slice(0, 6)}`,
-          service: serviceById.get(appointment.serviceId)?.name ?? "Servico",
+          customer: appointment.customer?.name ?? "Cliente sem nome",
+          service: appointment.service?.name ?? "Servico sem nome",
           status: appointment.status,
         })),
-    [appointments, serviceById],
+    [appointments],
   );
 
   const stats = useMemo(() => {
-    const upcoming = appointmentsToday.find(
-      (apt) =>
-        apt.status !== "CANCELLED" &&
-        apt.status !== "COMPLETED" &&
-        apt.status !== "NO_SHOW" &&
-        new Date(`${dateParam}T${apt.time}:00`).getTime() >= Date.now(),
-    );
+    const upcoming = appointments.find((appointment) => {
+      if (
+        appointment.status === "CANCELLED" ||
+        appointment.status === "COMPLETED" ||
+        appointment.status === "NO_SHOW"
+      ) {
+        return false;
+      }
 
-    const estRevenue = appointments.reduce((sum, appointment) => {
-      if (appointment.status === "CANCELLED" || appointment.status === "NO_SHOW") {
+      return new Date(appointment.startsAt).getTime() >= Date.now();
+    });
+
+    const estimatedRevenue = appointments.reduce((sum, appointment) => {
+      if (
+        appointment.status === "CANCELLED" ||
+        appointment.status === "NO_SHOW"
+      ) {
         return sum;
       }
 
-      const service = serviceById.get(appointment.serviceId);
-      return sum + (service ? service.priceInCents / 100 : 0);
+      return sum + ((appointment.service?.priceInCents ?? 0) / 100);
     }, 0);
 
     return {
       todayCount: appointments.length,
-      nextTime: upcoming ? upcoming.time : "--:--",
-      nextClient: upcoming ? upcoming.customer : "Sem proximos",
-      estRevenue,
+      nextTime: upcoming
+        ? new Date(upcoming.startsAt).toLocaleTimeString("pt-BR", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : "--:--",
+      nextClient: upcoming?.customer?.name ?? "Sem proximos",
+      estimatedRevenue,
     };
-  }, [appointments, appointmentsToday, dateParam, serviceById]);
-
-  const isLoading = isLoadingAppointments || isLoadingServices;
+  }, [appointments]);
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard
-          title="Agendamentos Hoje"
+          title="Agendamentos hoje"
           value={stats.todayCount.toString()}
           icon={CalendarDays}
           variant="primary"
         />
         <StatCard
-          title="Próximo Cliente"
+          title="Proximo cliente"
           value={stats.nextTime}
           subtitle={stats.nextClient}
           icon={Clock}
         />
         <StatCard
-          title="Faturamento Estimado"
-          value={`R$ ${stats.estRevenue.toFixed(2).replace(".", ",")}`}
+          title="Faturamento estimado"
+          value={`R$ ${stats.estimatedRevenue.toFixed(2).replace(".", ",")}`}
           icon={DollarSign}
           variant="success"
         />
       </div>
 
-      {/* Appointments Section */}
       <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-foreground">
-            Agenda do Dia
-          </h2>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-foreground">Agenda do dia</h2>
           <span className="text-sm text-muted-foreground">
             {new Date().toLocaleDateString("pt-BR", {
               weekday: "long",
@@ -130,6 +130,23 @@ export default function Dashboard() {
 
         {isLoading ? (
           <p className="text-sm text-muted-foreground">Carregando agenda...</p>
+        ) : isError ? (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Nao foi possivel carregar a agenda</AlertTitle>
+            <AlertDescription className="space-y-4">
+              <p>{getApiErrorMessage(error, "Tente novamente em instantes.")}</p>
+              <Button
+                type="button"
+                variant="outline"
+                className="gap-2"
+                onClick={() => void refetch()}
+              >
+                <RefreshCcw className="h-4 w-4" />
+                Tentar novamente
+              </Button>
+            </AlertDescription>
+          </Alert>
         ) : (
           <AppointmentList appointments={appointmentsToday} />
         )}

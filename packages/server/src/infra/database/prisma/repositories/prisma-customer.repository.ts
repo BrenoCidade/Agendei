@@ -71,6 +71,20 @@ export class PrismaCustomerRepository implements ICustomerRepository {
     return customers.map((customer) => PrismaCustomerMapper.toDomain(customer));
   }
 
+  async findByIds(ids: string[]): Promise<Customer[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    const customers = await this.prisma.customer.findMany({
+      where: {
+        id: { in: ids },
+      },
+    });
+
+    return customers.map((customer) => PrismaCustomerMapper.toDomain(customer));
+  }
+
   async findAll(
     page: number,
     limit: number,

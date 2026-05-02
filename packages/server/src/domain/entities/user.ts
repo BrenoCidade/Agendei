@@ -10,6 +10,9 @@ interface UserProps {
   phone?: string;
   businessName: string;
   slug?: string;
+  primaryColor?: string | null;
+  secondaryColor?: string | null;
+  accentColor?: string | null;
   passwordHash: string;
   passwordResetToken?: string | null;
   passwordResetExpires?: Date | null;
@@ -24,6 +27,9 @@ export class User {
   private _phone: Phone | null;
   private _businessName: string;
   private _slug: Slug;
+  private _primaryColor: string | null;
+  private _secondaryColor: string | null;
+  private _accentColor: string | null;
   private _passwordHash: string;
   private _passwordResetToken: string | null = null;
   private _passwordResetExpires: Date | null = null;
@@ -59,6 +65,26 @@ export class User {
     return trimmed;
   }
 
+  private normalizeBrandColor(
+    color: string | null | undefined,
+    field: string,
+  ): string | null {
+    if (color === undefined || color === null || color.trim() === '') {
+      return null;
+    }
+
+    const normalized = color.trim().toUpperCase();
+
+    if (!/^#[0-9A-F]{6}$/.test(normalized)) {
+      throw new ValidationError(
+        `${field} must be a valid HEX color`,
+        'INVALID_BRAND_COLOR',
+      );
+    }
+
+    return normalized;
+  }
+
   constructor(props: UserProps) {
     this._id = props.id ?? crypto.randomUUID();
     this._name = this.validateName(props.name);
@@ -68,6 +94,18 @@ export class User {
     this._slug = props.slug
       ? Slug.create(props.slug)
       : Slug.generate(props.businessName);
+    this._primaryColor = this.normalizeBrandColor(
+      props.primaryColor,
+      'Primary color',
+    );
+    this._secondaryColor = this.normalizeBrandColor(
+      props.secondaryColor,
+      'Secondary color',
+    );
+    this._accentColor = this.normalizeBrandColor(
+      props.accentColor,
+      'Accent color',
+    );
     this._passwordHash = props.passwordHash;
     this._passwordResetToken = props.passwordResetToken ?? null;
     this._passwordResetExpires = props.passwordResetExpires ?? null;
@@ -97,6 +135,18 @@ export class User {
 
   get slug(): string {
     return this._slug.Value;
+  }
+
+  get primaryColor(): string | null {
+    return this._primaryColor;
+  }
+
+  get secondaryColor(): string | null {
+    return this._secondaryColor;
+  }
+
+  get accentColor(): string | null {
+    return this._accentColor;
   }
 
   get createdAt(): Date {
@@ -134,9 +184,31 @@ export class User {
     this._updatedAt = new Date();
   }
 
-  updateBusinessProfile(businessName: string, slug: string): void {
+  updateBusinessProfile(
+    businessName: string,
+    slug: string,
+    branding?: {
+      primaryColor?: string | null;
+      secondaryColor?: string | null;
+      accentColor?: string | null;
+    },
+  ): void {
     this._businessName = this.validateBusinessName(businessName);
     this._slug = Slug.create(slug);
+    if (branding) {
+      this._primaryColor = this.normalizeBrandColor(
+        branding.primaryColor,
+        'Primary color',
+      );
+      this._secondaryColor = this.normalizeBrandColor(
+        branding.secondaryColor,
+        'Secondary color',
+      );
+      this._accentColor = this.normalizeBrandColor(
+        branding.accentColor,
+        'Accent color',
+      );
+    }
     this._updatedAt = new Date();
   }
 

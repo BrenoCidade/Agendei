@@ -1,0 +1,24 @@
+# Node
+**/node_modules/
+**/dist/
+
+# Pacote web (deployado separadamente como site estático)
+packages/web/
+
+# Env files
+.env*
+**/.env*
+
+# Artefatos de teste e CI
+coverage/
+test-results/
+playwright-report/
+.github/
+
+# Documentação
+docs/
+
+# Ferramentas locais
+.git/
+.vscode/
+*.md

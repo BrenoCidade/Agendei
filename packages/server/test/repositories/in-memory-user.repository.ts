@@ -66,4 +66,9 @@ export class InMemoryUserRepository implements IUserRepository {
   existsBySlug(slug: string): Promise<boolean> {
     return Promise.resolve(this.users.some((u) => u.slug === slug));
   }
+
+  findByPasswordResetToken(token: string): Promise<User | null> {
+    const user = this.users.find((u) => u.passwordResetToken === token);
+    return Promise.resolve(user ?? null);
+  }
 }

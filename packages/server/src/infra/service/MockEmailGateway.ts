@@ -1,16 +1,27 @@
-import { IEmailGateway } from '@/domain/gateways/IEmailGateway';
-import { Injectable } from '@nestjs/common';
+import type { AppointmentEmailParams, IEmailGateway } from '@/domain/gateways/IEmailGateway';
+import { Injectable, Logger } from '@nestjs/common';
 
 @Injectable()
 export class MockEmailGateway implements IEmailGateway {
-  async sendRecoveryEmail(to: string, token: string): Promise<void> {
-    console.log('------- MOCK EMAIL SENT -------');
-    console.log(`Recipient: ${to}`);
-    console.log(`Subject: Password Recovery`);
-    console.log('Body:');
-    console.log(`Use this token to reset your password: ${token}`);
-    console.log('-----------------------------');
+  private readonly logger = new Logger(MockEmailGateway.name);
 
-    return Promise.resolve();
+  async sendRecoveryEmail(to: string, _token: string): Promise<void> {
+    this.logger.log(`[Mock] Recovery email → ${to}`);
+  }
+
+  async sendAppointmentCreatedToCustomer(params: AppointmentEmailParams): Promise<void> {
+    this.logger.log(`[Mock] Appointment created (customer) → ${params.customerEmail}`);
+  }
+
+  async sendAppointmentCreatedToProvider(params: AppointmentEmailParams): Promise<void> {
+    this.logger.log(`[Mock] Appointment created (provider) → ${params.providerEmail}`);
+  }
+
+  async sendAppointmentCancelledByCustomer(params: AppointmentEmailParams): Promise<void> {
+    this.logger.log(`[Mock] Appointment cancelled by customer → ${params.providerEmail}`);
+  }
+
+  async sendAppointmentCancelledByProvider(params: AppointmentEmailParams): Promise<void> {
+    this.logger.log(`[Mock] Appointment cancelled by provider → ${params.customerEmail}`);
   }
 }

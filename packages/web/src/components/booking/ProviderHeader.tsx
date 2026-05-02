@@ -14,9 +14,9 @@ export function ProviderHeader({ name, avatar, address, isOpen = true }: Provide
     <header className="w-full bg-card border-b border-border">
       <div className="container max-w-lg mx-auto px-4 py-6">
         <div className="flex items-center gap-4">
-          <Avatar className="h-16 w-16 ring-2 ring-primary/20">
+          <Avatar className="h-16 w-16 ring-2 ring-[hsl(var(--booking-primary))]/20">
             <AvatarImage src={avatar} alt={name} />
-            <AvatarFallback className="bg-primary-light text-primary font-semibold text-lg">
+            <AvatarFallback className="bg-[hsl(var(--booking-primary-soft))] text-[hsl(var(--booking-primary))] font-semibold text-lg">
               {name.charAt(0)}
             </AvatarFallback>
           </Avatar>
@@ -29,7 +29,7 @@ export function ProviderHeader({ name, avatar, address, isOpen = true }: Provide
               <Badge 
                 variant={isOpen ? "default" : "secondary"}
                 className={isOpen 
-                  ? "bg-success/10 text-success border-success/20 hover:bg-success/20" 
+                  ? "border-[hsl(var(--booking-accent))]/20 bg-[hsl(var(--booking-accent-soft))] text-[hsl(var(--booking-accent))] hover:bg-[hsl(var(--booking-accent-soft))]" 
                   : "bg-muted text-muted-foreground"
                 }
               >

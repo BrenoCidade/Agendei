@@ -5,6 +5,7 @@ import type { Server } from 'http';
 import { AppModule } from '@/app.module';
 import { PrismaService } from '@/infra/database/prisma/prisma.service';
 import { randomUUID } from 'crypto';
+import { cleanDatabase } from './helpers/cleanup';
 
 describe('Profile E2E Tests', () => {
   let app: INestApplication;
@@ -35,11 +36,7 @@ describe('Profile E2E Tests', () => {
   });
 
   beforeEach(async () => {
-    await prisma.appointment.deleteMany();
-    await prisma.service.deleteMany();
-    await prisma.customer.deleteMany();
-    await prisma.availability.deleteMany();
-    await prisma.user.deleteMany();
+    await cleanDatabase(prisma);
 
     testEmail = generateUniqueEmail('profile-user');
     testBusiness = `Test Business ${randomUUID().substring(0, 8)}`;
@@ -178,6 +175,26 @@ describe('Profile E2E Tests', () => {
 
       expect(userInDb?.businessName).toBe('Updated Business');
       expect(userInDb?.slug).toBe('updated-business');
+    });
+
+    it('should update business phone when provided', async () => {
+      const response = await request(app.getHttpServer() as Server)
+        .patch('/profile/business')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({
+          businessName: 'Updated Business',
+          slug: 'updated-business',
+          phone: '(11) 97777-6666',
+        })
+        .expect(200);
+
+      expect(response.body).toHaveProperty('phone', '11977776666');
+
+      const userInDb = await prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      expect(userInDb?.phone).toBe('11977776666');
     });
 
     it('should return 409 when slug already exists', async () => {

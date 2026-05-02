@@ -7,6 +7,10 @@ interface UpdateBusinessProfileInput {
   userId: string;
   businessName: string;
   slug: string;
+  phone?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  accentColor?: string;
 }
 
 @Injectable()
@@ -35,7 +39,15 @@ export class UpdateBusinessProfileUseCase {
       }
     }
 
-    user.updateBusinessProfile(input.businessName, normalizedSlug);
+    user.updateBusinessProfile(input.businessName, normalizedSlug, {
+      primaryColor: input.primaryColor,
+      secondaryColor: input.secondaryColor,
+      accentColor: input.accentColor,
+    });
+
+    if (input.phone !== undefined) {
+      user.updateProfile(user.name, user.email, input.phone);
+    }
 
     await this.userRepository.save(user);
 

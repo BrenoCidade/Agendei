@@ -15,4 +15,5 @@ export interface IAvailabilityRepository {
   findActiveByProviderId(providerId: string): Promise<Availability[]>;
 
   delete(id: string): Promise<void>;
+  deleteByProviderAndDay(providerId: string, dayOfWeek: number): Promise<void>;
 }

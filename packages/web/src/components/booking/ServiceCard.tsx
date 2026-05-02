@@ -21,10 +21,10 @@ export function ServiceCard({ service, isSelected, onSelect }: ServiceCardProps)
       onClick={() => onSelect(service)}
       className={cn(
         "w-full text-left p-4 rounded-xl border-2 transition-all duration-200",
-        "hover:border-primary/50 hover:shadow-sm",
-        "focus:outline-none focus:ring-2 focus:ring-primary/20",
+        "hover:border-[hsl(var(--booking-primary))]/50 hover:shadow-sm",
+        "focus:outline-none focus:ring-2 focus:ring-[hsl(var(--booking-primary))]/20",
         isSelected 
-          ? "border-primary bg-primary-light shadow-sm" 
+          ? "border-[hsl(var(--booking-primary))] bg-[hsl(var(--booking-primary-soft))] shadow-sm" 
           : "border-border bg-card"
       )}
     >
@@ -32,7 +32,7 @@ export function ServiceCard({ service, isSelected, onSelect }: ServiceCardProps)
         <div className="flex-1 min-w-0">
           <h3 className={cn(
             "font-medium text-base",
-            isSelected ? "text-primary" : "text-foreground"
+            isSelected ? "text-[hsl(var(--booking-primary))]" : "text-foreground"
           )}>
             {service.name}
           </h3>
@@ -47,7 +47,7 @@ export function ServiceCard({ service, isSelected, onSelect }: ServiceCardProps)
         
         <div className={cn(
           "text-lg font-semibold whitespace-nowrap",
-          isSelected ? "text-primary" : "text-foreground"
+          isSelected ? "text-[hsl(var(--booking-primary))]" : "text-foreground"
         )}>
           R$ {service.price.toFixed(2).replace('.', ',')}
         </div>
@@ -55,8 +55,8 @@ export function ServiceCard({ service, isSelected, onSelect }: ServiceCardProps)
       
       {isSelected && (
         <div className="mt-3 flex items-center gap-2">
-          <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-          <span className="text-xs font-medium text-primary">Selecionado</span>
+          <div className="h-2 w-2 rounded-full bg-[hsl(var(--booking-primary))] animate-pulse" />
+          <span className="text-xs font-medium text-[hsl(var(--booking-primary))]">Selecionado</span>
         </div>
       )}
     </button>

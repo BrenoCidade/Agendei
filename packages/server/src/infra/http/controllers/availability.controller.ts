@@ -8,6 +8,7 @@ import {
   NotFoundException,
   Param,
   Post,
+  Put,
   UseGuards,
   Request,
 } from '@nestjs/common';
@@ -19,12 +20,15 @@ import { AvailabilityResponseMapper } from '@/application/mappers/availability-r
 import { ZodValidationPipe } from '../pipes/zod-validation.pipe';
 import {
   setAvailabilitySchema,
+  setWeekAvailabilitySchema,
   deleteAvailabilitySchema,
   type SetAvailabilityDTO,
+  type SetWeekAvailabilityDTO,
   type DeleteAvailabilityDTO,
   type AvailabilityResponseDTO,
 } from '@saas/shared';
 import { BusinessRuleError, NotFoundError } from '@/domain/errors';
+import { SetWeekAvailabilityUseCase } from '@/application/use-cases/availability/set-week-availability.use-case';
 
 interface RequestWithUser {
   user: {
@@ -39,6 +43,7 @@ export class AvailabilityController {
   constructor(
     private readonly getAvailabilityUseCase: GetAvailabilityUseCase,
     private readonly setAvailabilityUseCase: SetAvailabilityUseCase,
+    private readonly setWeekAvailabilityUseCase: SetWeekAvailabilityUseCase,
     private readonly deleteAvailabilityUseCase: DeleteAvailabilityUseCase,
   ) {}
 
@@ -81,6 +86,36 @@ export class AvailabilityController {
       });
 
       return AvailabilityResponseMapper.toDTO(availability);
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw new NotFoundException(error.message);
+      }
+
+      if (error instanceof BusinessRuleError) {
+        throw new BadRequestException(error.message);
+      }
+
+      throw new BadRequestException('An unexpected error occurred');
+    }
+  }
+
+  @Put('/week')
+  async setWeekAvailability(
+    @Request() req: RequestWithUser,
+    @Body(new ZodValidationPipe(setWeekAvailabilitySchema))
+    body: SetWeekAvailabilityDTO,
+  ): Promise<AvailabilityResponseDTO[]> {
+    try {
+      const providerId = req.user.userId;
+
+      const availabilities = await this.setWeekAvailabilityUseCase.execute({
+        providerId,
+        availabilities: body.availabilities,
+      });
+
+      return availabilities.map((availability) =>
+        AvailabilityResponseMapper.toDTO(availability),
+      );
     } catch (error) {
       if (error instanceof NotFoundError) {
         throw new NotFoundException(error.message);

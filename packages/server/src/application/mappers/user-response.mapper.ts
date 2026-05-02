@@ -10,6 +10,9 @@ export class UserResponseMapper {
       phone: user.phone,
       businessName: user.businessName,
       slug: user.slug,
+      primaryColor: user.primaryColor,
+      secondaryColor: user.secondaryColor,
+      accentColor: user.accentColor,
       createdAt: user.createdAt.toISOString(),
       updatedAt: user.updatedAt.toISOString(),
     };

@@ -47,4 +47,8 @@ export class InMemoryServiceRepository implements IServiceRepository {
     this.services = this.services.filter((s) => s.id !== id);
     return Promise.resolve();
   }
+
+  findByIds(ids: string[]): Promise<Service[]> {
+    return Promise.resolve(this.services.filter((s) => ids.includes(s.id)));
+  }
 }
