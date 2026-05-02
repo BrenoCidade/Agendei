@@ -5,6 +5,7 @@ import type { Server } from 'http';
 import { AppModule } from '@/app.module';
 import { PrismaService } from '@/infra/database/prisma/prisma.service';
 import { randomUUID } from 'crypto';
+import { cleanDatabase } from './helpers/cleanup';
 
 describe('Public E2E Tests', () => {
   let app: INestApplication;
@@ -36,11 +37,7 @@ describe('Public E2E Tests', () => {
   });
 
   beforeEach(async () => {
-    await prisma.appointment.deleteMany();
-    await prisma.service.deleteMany();
-    await prisma.customer.deleteMany();
-    await prisma.availability.deleteMany();
-    await prisma.user.deleteMany();
+    await cleanDatabase(prisma);
 
     const uniqueEmail = generateUniqueEmail('joao');
     const uniqueSlug = generateUniqueSlug('barbearia-do-joao');
@@ -53,6 +50,9 @@ describe('Public E2E Tests', () => {
         businessName: 'Barbearia do João',
         slug: uniqueSlug,
         phone: '11999999999',
+        primaryColor: '#1D4ED8',
+        secondaryColor: '#DBEAFE',
+        accentColor: '#F97316',
       },
     });
 
@@ -119,16 +119,28 @@ describe('Public E2E Tests', () => {
       expect(response.body).toHaveProperty('businessName', 'Barbearia do João');
       expect(response.body).toHaveProperty('name', 'João Barbeiro');
       expect(response.body).toHaveProperty('services');
+      expect(response.body).toHaveProperty('availableDays');
+      expect(response.body).toHaveProperty('primaryColor', '#1D4ED8');
+      expect(response.body).toHaveProperty('secondaryColor', '#DBEAFE');
+      expect(response.body).toHaveProperty('accentColor', '#F97316');
 
       const body = response.body as {
         slug: string;
         businessName: string;
         name: string;
+        availableDays: number[];
+        primaryColor: string | null;
+        secondaryColor: string | null;
+        accentColor: string | null;
         services: Array<{ name: string }>;
       };
       expect(Array.isArray(body.services)).toBe(true);
       expect(body.services).toHaveLength(1);
       expect(body.services[0]).toHaveProperty('name', 'Corte de Cabelo');
+      expect(body.availableDays).toEqual([1, 2, 3, 4, 5]);
+      expect(body.primaryColor).toBe('#1D4ED8');
+      expect(body.secondaryColor).toBe('#DBEAFE');
+      expect(body.accentColor).toBe('#F97316');
     });
 
     it('should return 404 when slug does not exist', async () => {

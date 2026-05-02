@@ -5,6 +5,7 @@ import type { Server } from 'http';
 import { AppModule } from '@/app.module';
 import { PrismaService } from '@/infra/database/prisma/prisma.service';
 import { randomUUID } from 'crypto';
+import { cleanDatabase } from './helpers/cleanup';
 
 describe('Appointments E2E Tests', () => {
   let app: INestApplication;
@@ -46,11 +47,7 @@ describe('Appointments E2E Tests', () => {
   });
 
   beforeEach(async () => {
-    await prisma.appointment.deleteMany();
-    await prisma.service.deleteMany();
-    await prisma.customer.deleteMany();
-    await prisma.availability.deleteMany();
-    await prisma.user.deleteMany();
+    await cleanDatabase(prisma);
 
     const testEmail = generateUniqueEmail('appointment-user');
     const testBusiness = `Test Business ${randomUUID().substring(0, 8)}`;

@@ -38,13 +38,15 @@ describe('Availability Week E2E', () => {
     const email = generateUniqueEmail('availability-week');
     const businessName = `Week Business ${randomUUID().slice(0, 8)}`;
 
-    await request(app.getHttpServer() as Server).post('/auth/register').send({
-      name: 'Provider Test',
-      email,
-      password: 'Test@1234',
-      businessName,
-      phone: '11999999999',
-    });
+    await request(app.getHttpServer() as Server)
+      .post('/auth/register')
+      .send({
+        name: 'Provider Test',
+        email,
+        password: 'Test@1234',
+        businessName,
+        phone: '11999999999',
+      });
 
     const loginResponse = await request(app.getHttpServer() as Server)
       .post('/auth/login')
@@ -106,10 +108,9 @@ describe('Availability Week E2E', () => {
       .expect(200);
 
     expect(response.body).toHaveLength(2);
-    expect(response.body.map((item: { dayOfWeek: number }) => item.dayOfWeek)).toEqual([
-      2,
-      5,
-    ]);
+    expect(
+      response.body.map((item: { dayOfWeek: number }) => item.dayOfWeek),
+    ).toEqual([2, 5]);
 
     const availabilitiesInDb = await prisma.availability.findMany({
       where: { providerId },
@@ -118,5 +119,71 @@ describe('Availability Week E2E', () => {
 
     expect(availabilitiesInDb).toHaveLength(2);
     expect(availabilitiesInDb.map((item) => item.dayOfWeek)).toEqual([2, 5]);
+  });
+
+  it('blocks closing a day that still has future appointments', async () => {
+    const customer = await prisma.customer.create({
+      data: {
+        name: 'Cliente Imprevisto',
+        email: `cliente-${randomUUID()}@test.com`,
+        phone: '11988887777',
+        providerId,
+      },
+    });
+
+    const service = await prisma.service.create({
+      data: {
+        name: 'Consulta de Segunda',
+        description: 'Servico para validar bloqueio de fechamento',
+        durationInMinutes: 60,
+        priceInCents: 9000,
+        providerId,
+        isActive: true,
+      },
+    });
+
+    const nextMonday = new Date();
+    nextMonday.setDate(
+      nextMonday.getDate() + ((1 + 7 - nextMonday.getDay()) % 7 || 7),
+    );
+    nextMonday.setHours(9, 0, 0, 0);
+
+    const endsAt = new Date(nextMonday);
+    endsAt.setHours(10, 0, 0, 0);
+
+    await prisma.appointment.create({
+      data: {
+        providerId,
+        customerId: customer.id,
+        serviceId: service.id,
+        startsAt: nextMonday,
+        endsAt,
+        status: 'CONFIRMED',
+      },
+    });
+
+    const response = await request(app.getHttpServer() as Server)
+      .put('/availability/week')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({
+        availabilities: [
+          {
+            dayOfWeek: 3,
+            slots: [{ start: '14:00', end: '18:00' }],
+          },
+        ],
+      })
+      .expect(400);
+
+    expect(response.body.message).toBe(
+      'Cannot remove availability for days with future appointments',
+    );
+
+    const availabilitiesInDb = await prisma.availability.findMany({
+      where: { providerId },
+      orderBy: { dayOfWeek: 'asc' },
+    });
+
+    expect(availabilitiesInDb.map((item) => item.dayOfWeek)).toEqual([1, 3]);
   });
 });

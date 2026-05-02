@@ -38,13 +38,15 @@ describe('Profile Business Contract E2E', () => {
     const email = generateUniqueEmail('profile-business');
     const businessName = `Profile Business ${randomUUID().slice(0, 8)}`;
 
-    await request(app.getHttpServer() as Server).post('/auth/register').send({
-      name: 'Provider Test',
-      email,
-      password: 'Test@1234',
-      businessName,
-      phone: '11999999999',
-    });
+    await request(app.getHttpServer() as Server)
+      .post('/auth/register')
+      .send({
+        name: 'Provider Test',
+        email,
+        password: 'Test@1234',
+        businessName,
+        phone: '11999999999',
+      });
 
     const loginResponse = await request(app.getHttpServer() as Server)
       .post('/auth/login')
@@ -75,6 +77,9 @@ describe('Profile Business Contract E2E', () => {
         businessName: 'Studio Atualizado',
         slug: 'studio-atualizado',
         phone: '(11) 97777-6666',
+        primaryColor: '#1D4ED8',
+        secondaryColor: '#DBEAFE',
+        accentColor: '#F97316',
       })
       .expect(200);
 
@@ -82,6 +87,9 @@ describe('Profile Business Contract E2E', () => {
       businessName: 'Studio Atualizado',
       slug: 'studio-atualizado',
       phone: '11977776666',
+      primaryColor: '#1D4ED8',
+      secondaryColor: '#DBEAFE',
+      accentColor: '#F97316',
     });
 
     const userInDb = await prisma.user.findUnique({
@@ -91,5 +99,27 @@ describe('Profile Business Contract E2E', () => {
     expect(userInDb?.phone).toBe('11977776666');
     expect(userInDb?.businessName).toBe('Studio Atualizado');
     expect(userInDb?.slug).toBe('studio-atualizado');
+    expect(userInDb?.primaryColor).toBe('#1D4ED8');
+    expect(userInDb?.secondaryColor).toBe('#DBEAFE');
+    expect(userInDb?.accentColor).toBe('#F97316');
+  });
+
+  it('rejects invalid branding colors when updating business profile', async () => {
+    const response = await request(app.getHttpServer() as Server)
+      .patch('/profile/business')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({
+        businessName: 'Studio Atualizado',
+        slug: 'studio-atualizado',
+        phone: '(11) 97777-6666',
+        primaryColor: 'blue',
+        secondaryColor: '#DBEAFE',
+        accentColor: '#F97316',
+      })
+      .expect(400);
+
+    expect(response.body.message).toContain(
+      'Colors must be valid HEX values like #1D4ED8',
+    );
   });
 });

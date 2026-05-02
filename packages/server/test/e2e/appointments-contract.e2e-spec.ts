@@ -38,13 +38,15 @@ describe('Appointments Contract E2E', () => {
     const email = generateUniqueEmail('appointments-contract');
     const businessName = `Contract Business ${randomUUID().slice(0, 8)}`;
 
-    await request(app.getHttpServer() as Server).post('/auth/register').send({
-      name: 'Provider Test',
-      email,
-      password: 'Test@1234',
-      businessName,
-      phone: '11999999999',
-    });
+    await request(app.getHttpServer() as Server)
+      .post('/auth/register')
+      .send({
+        name: 'Provider Test',
+        email,
+        password: 'Test@1234',
+        businessName,
+        phone: '11999999999',
+      });
 
     const loginResponse = await request(app.getHttpServer() as Server)
       .post('/auth/login')
