@@ -101,6 +101,9 @@ export class ProfileController {
         businessName: body.businessName,
         slug: body.slug,
         phone: body.phone,
+        primaryColor: body.primaryColor,
+        secondaryColor: body.secondaryColor,
+        accentColor: body.accentColor,
       });
 
       return UserResponseMapper.toDTO(user);

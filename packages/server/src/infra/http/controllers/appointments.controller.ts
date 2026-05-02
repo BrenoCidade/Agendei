@@ -143,7 +143,9 @@ export class AppointmentsController {
   private async buildAppointmentResponses(
     appointments: Appointment[],
   ): Promise<AppointmentResponse[]> {
-    const customerIds = [...new Set(appointments.map((item) => item.customerId))];
+    const customerIds = [
+      ...new Set(appointments.map((item) => item.customerId)),
+    ];
     const serviceIds = [...new Set(appointments.map((item) => item.serviceId))];
 
     const [customers, services] = await Promise.all([
