@@ -38,7 +38,7 @@ COPY --from=builder /app/packages/server/dist ./dist
 
 # Schema Prisma + cliente gerado (binário linux-musl compatible com alpine)
 COPY --from=builder /app/packages/server/prisma ./prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/.pnpm ./node_modules/.pnpm
 
 EXPOSE 3333
 
