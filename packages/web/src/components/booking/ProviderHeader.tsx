@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 
 interface ProviderHeaderProps {
   name: string;
-  avatar: string;
+  avatar?: string | null;
   address: string;
   isOpen?: boolean;
 }
@@ -15,7 +15,7 @@ export function ProviderHeader({ name, avatar, address, isOpen = true }: Provide
       <div className="container max-w-lg mx-auto px-4 py-6">
         <div className="flex items-center gap-4">
           <Avatar className="h-16 w-16 ring-2 ring-[hsl(var(--booking-primary))]/20">
-            <AvatarImage src={avatar} alt={name} />
+            <AvatarImage src={avatar ?? undefined} alt={name} />
             <AvatarFallback className="bg-[hsl(var(--booking-primary-soft))] text-[hsl(var(--booking-primary))] font-semibold text-lg">
               {name.charAt(0)}
             </AvatarFallback>

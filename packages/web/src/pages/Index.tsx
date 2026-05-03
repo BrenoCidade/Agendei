@@ -199,7 +199,7 @@ const Index = () => {
     <div className="booking-theme min-h-screen bg-background pb-32" style={bookingThemeStyle}>
       <ProviderHeader
         name={provider?.businessName ?? "Carregando..."}
-        avatar="https://github.com/shadcn.png"
+        avatar={provider?.avatarUrl}
         address={provider?.phone ? `Contato: ${provider.phone}` : `@${providerSlug}`}
         isOpen={true}
       />

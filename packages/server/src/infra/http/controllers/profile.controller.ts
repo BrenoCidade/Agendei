@@ -51,7 +51,7 @@ export class ProfileController {
     private readonly updateBusinessProfileUseCase: UpdateBusinessProfileUseCase,
     private readonly changePasswordUseCase: ChangePasswordUseCase,
     private readonly uploadAvatarUseCase: UploadAvatarUseCase,
-  ) {}
+  ) { }
 
   @Get('/me')
   async getProfile(@Request() req: RequestWithUser): Promise<UserResponseDTO> {

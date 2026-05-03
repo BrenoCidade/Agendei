@@ -126,6 +126,7 @@ export class PublicController {
         primaryColor: provider.primaryColor,
         secondaryColor: provider.secondaryColor,
         accentColor: provider.accentColor,
+        avatarUrl: provider.avatarUrl,
         availableDays: availabilities
           .filter(
             (availability) =>

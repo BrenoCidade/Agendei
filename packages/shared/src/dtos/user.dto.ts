@@ -79,6 +79,7 @@ export const publicProviderProfileSchema = z.object({
   primaryColor: z.string().nullable(),
   secondaryColor: z.string().nullable(),
   accentColor: z.string().nullable(),
+  avatarUrl: z.string().url().nullable().optional(),
   availableDays: z.array(z.number().int().min(0).max(6)),
   services: z.array(serviceResponseSchema),
 });
