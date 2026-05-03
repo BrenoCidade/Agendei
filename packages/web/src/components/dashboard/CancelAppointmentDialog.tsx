@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
@@ -18,7 +17,7 @@ interface CancelAppointmentDialogProps {
   isOpen: boolean;
   onClose: () => void;
   customerName: string;
-  onConfirm?: (reason: string, notifyCustomer: boolean) => void;
+  onConfirm?: (reason: string) => void;
 }
 
 export function CancelAppointmentDialog({
@@ -37,20 +36,16 @@ export function CancelAppointmentDialog({
       return;
     }
 
-    setIsSubmitting(true);
-    setTimeout(() => {
-      onConfirm?.(reason, notifyCustomer);
-      toast.success("Agendamento cancelado com sucesso");
-      setIsSubmitting(false);
-      setReason("");
-      setNotifyCustomer(true);
-      onClose();
-    }, 600);
+    if (reason.trim().length < 10) {
+      toast.error("O motivo precisa ter ao menos 10 caracteres");
+      return;
+    }
+
+    onConfirm?.(reason.trim());
   };
 
   const handleClose = () => {
     setReason("");
-    setNotifyCustomer(true);
     onClose();
   };
 
@@ -85,16 +80,6 @@ export function CancelAppointmentDialog({
             />
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="notify"
-              checked={notifyCustomer}
-              onCheckedChange={(checked) => setNotifyCustomer(checked as boolean)}
-            />
-            <Label htmlFor="notify" className="text-sm font-normal cursor-pointer">
-              Notificar cliente por e-mail/WhatsApp
-            </Label>
-          </div>
         </div>
 
         <DialogFooter className="gap-2 sm:gap-0">

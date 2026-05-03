@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { UpdateBusinessProfileDTO, UserResponseDTO } from "@saas/shared";
-import { AlertCircle, Loader2, RefreshCcw, Store } from "lucide-react";
+import { AlertCircle, Check, Copy, Loader2, RefreshCcw, Store } from "lucide-react";
 import { AvailabilitySettings } from "@/components/dashboard/AvailabilitySettings";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -64,6 +64,34 @@ function ColorField({
         />
       </div>
     </div>
+  );
+}
+
+function CopyLinkButton({ slug }: { slug: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    const url = `${window.location.origin}/${slug}`;
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      className="h-7 w-7 shrink-0"
+      onClick={() => void handleCopy()}
+      title="Copiar link"
+    >
+      {copied ? (
+        <Check className="h-3.5 w-3.5 text-success" />
+      ) : (
+        <Copy className="h-3.5 w-3.5 text-muted-foreground" />
+      )}
+    </Button>
   );
 }
 
@@ -255,15 +283,39 @@ export default function DashboardSettings() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="business-slug">Slug publico</Label>
+                  <Label htmlFor="business-slug">Link de agendamento</Label>
                   <Input
                     id="business-slug"
                     value={slug}
                     onChange={(event) => setSlug(event.target.value)}
+                    placeholder="meu-negocio"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Usado na URL publica do seu negocio.
+                    Use apenas letras, numeros e hifens. Sem espacos.
                   </p>
+
+                  {/* Live URL preview */}
+                  {normalizedSlug && (
+                    <div className="mt-3 rounded-lg border border-border bg-muted/40 p-3">
+                      <p className="mb-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Seu link para compartilhar com clientes
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={`${window.location.origin}/${normalizedSlug}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex-1 truncate text-sm font-medium text-primary underline-offset-2 hover:underline"
+                        >
+                          {window.location.origin}/{normalizedSlug}
+                        </a>
+                        <CopyLinkButton slug={normalizedSlug} />
+                      </div>
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        Envie este link para seus clientes agendarem diretamente com voce.
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">

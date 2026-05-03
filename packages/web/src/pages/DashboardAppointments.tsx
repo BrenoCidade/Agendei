@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
   CalendarDays,
@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { AppointmentList } from "@/components/dashboard/AppointmentList";
 import { api, getApiErrorMessage } from "@/lib/api";
+import { toast } from "sonner";
 
 type StatusFilter =
   | "ALL"
@@ -104,6 +105,8 @@ export default function DashboardAppointments() {
     // "custom" — let user pick dates manually
   };
 
+  const queryClient = useQueryClient();
+
   const {
     data: appointments = [],
     isLoading,
@@ -158,6 +161,35 @@ export default function DashboardAppointments() {
     }
     return counts;
   }, [appointments]);
+
+  const cancelMutation = useMutation({
+    mutationFn: async ({ id, reason }: { id: string; reason: string }) => {
+      await api.patch(`/appointments/${id}/cancel`, {
+        reason,
+        canceledBy: "PROVIDER",
+      });
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["all-appointments"] });
+      toast.success("Agendamento cancelado com sucesso");
+    },
+    onError: (err) => {
+      toast.error(getApiErrorMessage(err, "Não foi possível cancelar o agendamento."));
+    },
+  });
+
+  const completeMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await api.patch(`/appointments/${id}/confirm`);
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["all-appointments"] });
+      toast.success("Agendamento marcado como concluído");
+    },
+    onError: (err) => {
+      toast.error(getApiErrorMessage(err, "Não foi possível atualizar o agendamento."));
+    },
+  });
 
   const quickRangeButtons: { label: string; value: QuickRange }[] = [
     { label: "Hoje", value: "today" },
@@ -314,7 +346,15 @@ export default function DashboardAppointments() {
           </AlertDescription>
         </Alert>
       ) : (
-        <AppointmentList appointments={filtered} />
+        <AppointmentList
+          appointments={filtered}
+          onCancelConfirm={async (id, reason) => {
+            await cancelMutation.mutateAsync({ id, reason });
+          }}
+          onComplete={async (id) => {
+            await completeMutation.mutateAsync(id);
+          }}
+        />
       )}
     </div>
   );
