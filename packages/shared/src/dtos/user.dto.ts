@@ -64,6 +64,7 @@ export const userResponseSchema = z.object({
   primaryColor: z.string().nullable(),
   secondaryColor: z.string().nullable(),
   accentColor: z.string().nullable(),
+  avatarUrl: z.string().url().nullable().optional(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
 });
@@ -154,6 +155,23 @@ export const resetPasswordSchema = z.object({
 });
 
 export type ResetPasswordDTO = z.infer<typeof resetPasswordSchema>;
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Current password is required'),
+  newPassword: z
+    .string()
+    .min(8, 'The password must have at least 8 characters')
+    .max(72, 'The password must have at most 72 characters')
+    .regex(/[A-Z]/, 'The password must contain at least one uppercase letter')
+    .regex(/[a-z]/, 'The password must contain at least one lowercase letter')
+    .regex(/[0-9]/, 'The password must contain at least one number')
+    .regex(
+      /[^A-Za-z0-9]/,
+      'The password must contain at least one special character',
+    ),
+});
+
+export type ChangePasswordDTO = z.infer<typeof changePasswordSchema>;
 
 export const paginatedUsersResponseSchema = z.object({
   data: z.array(userResponseSchema),

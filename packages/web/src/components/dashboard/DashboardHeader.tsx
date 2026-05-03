@@ -1,4 +1,4 @@
-﻿import { Menu, User, LogOut, Settings } from "lucide-react";
+import { Menu, User, LogOut, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -35,6 +35,7 @@ export function DashboardHeader({ title, onMenuClick }: DashboardHeaderProps) {
   const initials = getInitials(user?.name);
   const displayName = user?.name || "Usuário";
   const displayEmail = user?.email || "";
+  const avatarSrc = user?.avatarUrl ?? undefined;
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 md:px-6 bg-card border-b border-border">
@@ -54,7 +55,7 @@ export function DashboardHeader({ title, onMenuClick }: DashboardHeaderProps) {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-10 w-10 rounded-full">
             <Avatar className="h-10 w-10 ring-2 ring-primary/20">
-              <AvatarImage src={`https://ui-avatars.com/api/?name=${initials}&background=0D8BFF&color=fff`} alt={displayName} />
+              <AvatarImage src={avatarSrc} alt={displayName} />
               <AvatarFallback className="bg-primary-light text-primary font-semibold">
                 {initials}
               </AvatarFallback>
@@ -64,7 +65,7 @@ export function DashboardHeader({ title, onMenuClick }: DashboardHeaderProps) {
         <DropdownMenuContent align="end" className="w-56">
           <div className="flex items-center gap-3 p-3 overflow-hidden">
             <Avatar className="h-10 w-10 shrink-0">
-              <AvatarImage src={`https://ui-avatars.com/api/?name=${initials}&background=0D8BFF&color=fff`} />
+              <AvatarImage src={avatarSrc} />
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
             <div className="flex flex-col overflow-hidden">

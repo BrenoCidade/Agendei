@@ -25,6 +25,7 @@ model User {
   primaryColor                String?   @map("primary_color") @db.VarChar(7)
   secondaryColor              String?   @map("secondary_color") @db.VarChar(7)
   accentColor                 String?   @map("accent_color") @db.VarChar(7)
+  avatarUrl                   String?   @map("avatar_url") @db.VarChar(500)
   passwordResetToken          String?   @map("password_reset_token") @db.VarChar(255)
   passwordResetTokenExpiresAt DateTime? @map("password_reset_token_expires_at")
   createdAt                   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)

@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { UpdateBusinessProfileDTO, UserResponseDTO } from "@saas/shared";
-import { AlertCircle, Check, Copy, Loader2, RefreshCcw, Store } from "lucide-react";
+import type { UpdateBusinessProfileDTO, UpdateProfileDTO, UserResponseDTO } from "@saas/shared";
+import { AlertCircle, Camera, Check, Copy, KeyRound, Loader2, RefreshCcw, Store, User } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AvailabilitySettings } from "@/components/dashboard/AvailabilitySettings";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -107,6 +108,20 @@ export default function DashboardSettings() {
   const [accentColor, setAccentColor] = useState("");
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  // ---- Meu Perfil state ----
+  const [profileName, setProfileName] = useState("");
+  const [profileEmail, setProfileEmail] = useState("");
+  const [profilePhone, setProfilePhone] = useState("");
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  // ---- Trocar senha state ----
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+
   const { data: user, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["profile"],
     queryFn: async () => {
@@ -127,6 +142,12 @@ export default function DashboardSettings() {
     setSecondaryColor(user.secondaryColor ?? "");
     setAccentColor(user.accentColor ?? "");
     setSaveError(null);
+
+    // Sync profile tab
+    setProfileName(user.name);
+    setProfileEmail(user.email);
+    setProfilePhone(user.phone ?? "");
+    setProfileError(null);
   }, [user]);
 
   const normalizedSlug = useMemo(
@@ -218,6 +239,102 @@ export default function DashboardSettings() {
     });
   };
 
+  // ---- Mutations: Meu Perfil ----
+  const updateProfileMutation = useMutation({
+    mutationFn: async (payload: UpdateProfileDTO) => {
+      const response = await api.patch<UserResponseDTO>("/profile/", payload);
+      return response.data;
+    },
+    onSuccess: async (updatedUser) => {
+      queryClient.setQueryData(["profile"], updatedUser);
+      await queryClient.invalidateQueries({ queryKey: ["profile"] });
+      setProfileError(null);
+      toast({ title: "Dados pessoais atualizados." });
+    },
+    onError: (mutationError) => {
+      const message = getApiErrorMessage(mutationError, "Nao foi possivel salvar os dados.");
+      setProfileError(message);
+      toast({ title: message, variant: "destructive" });
+    },
+  });
+
+  const changePasswordMutation = useMutation({
+    mutationFn: async (payload: { currentPassword: string; newPassword: string }) => {
+      await api.patch("/profile/password", payload);
+    },
+    onSuccess: () => {
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setPasswordError(null);
+      toast({ title: "Senha alterada com sucesso." });
+    },
+    onError: (mutationError) => {
+      const message = getApiErrorMessage(mutationError, "Nao foi possivel alterar a senha.");
+      setPasswordError(message);
+      toast({ title: message, variant: "destructive" });
+    },
+  });
+
+  const uploadAvatarMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("avatar", file);
+      const response = await api.post<UserResponseDTO>("/profile/avatar", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return response.data;
+    },
+    onSuccess: async (updatedUser) => {
+      queryClient.setQueryData(["profile"], updatedUser);
+      await queryClient.invalidateQueries({ queryKey: ["profile"] });
+      toast({ title: "Foto de perfil atualizada." });
+    },
+    onError: (mutationError) => {
+      toast({
+        title: getApiErrorMessage(mutationError, "Nao foi possivel enviar a foto."),
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarPreview(URL.createObjectURL(file));
+    uploadAvatarMutation.mutate(file);
+  };
+
+  const handleSaveProfile = () => {
+    if (!profileName.trim() || !profileEmail.trim()) {
+      setProfileError("Nome e e-mail sao obrigatorios.");
+      return;
+    }
+    setProfileError(null);
+    updateProfileMutation.mutate({
+      name: profileName.trim(),
+      email: profileEmail.trim(),
+      phone: profilePhone.trim() || undefined,
+    });
+  };
+
+  const handleChangePassword = () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setPasswordError("Preencha todos os campos de senha.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError("A nova senha e a confirmacao nao coincidem.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPasswordError("A nova senha precisa ter ao menos 8 caracteres.");
+      return;
+    }
+    setPasswordError(null);
+    changePasswordMutation.mutate({ currentPassword, newPassword });
+  };
+
   return (
     <div className="space-y-6 animate-fade-in w-full max-w-2xl">
       <div>
@@ -227,15 +344,218 @@ export default function DashboardSettings() {
         </p>
       </div>
 
-      <Tabs defaultValue="business" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+      <Tabs defaultValue="profile" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="profile">Meu Perfil</TabsTrigger>
           <TabsTrigger value="business">Negocio</TabsTrigger>
           <TabsTrigger value="availability">Horarios</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="business" className="mt-6 space-y-6">
+        {/* ---- Aba: Meu Perfil ---- */}
+        <TabsContent value="profile" className="mt-6 space-y-6">
+
+          {/* Avatar upload */}
           <Card className="p-6">
-            <div className="mb-6 flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <div className="relative group">
+                <Avatar className="h-20 w-20 ring-2 ring-primary/20">
+                  <AvatarImage src={avatarPreview ?? user?.avatarUrl ?? undefined} alt={user?.name} />
+                  <AvatarFallback className="bg-primary-light text-primary text-2xl font-semibold">
+                    {user?.name?.substring(0, 2).toUpperCase() ?? "US"}
+                  </AvatarFallback>
+                </Avatar>
+                <button
+                  type="button"
+                  onClick={() => avatarInputRef.current?.click()}
+                  disabled={uploadAvatarMutation.isPending}
+                  className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  {uploadAvatarMutation.isPending ? (
+                    <Loader2 className="h-6 w-6 animate-spin text-white" />
+                  ) : (
+                    <Camera className="h-6 w-6 text-white" />
+                  )}
+                </button>
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={handleAvatarChange}
+                />
+              </div>
+              <div className="text-center sm:text-left">
+                <p className="font-medium text-foreground">{user?.name ?? "Seu nome"}</p>
+                <p className="text-sm text-muted-foreground">{user?.email ?? ""}</p>
+                <button
+                  type="button"
+                  onClick={() => avatarInputRef.current?.click()}
+                  disabled={uploadAvatarMutation.isPending}
+                  className="mt-1 text-xs text-primary hover:underline disabled:opacity-50"
+                >
+                  {uploadAvatarMutation.isPending ? "Enviando..." : "Alterar foto"}
+                </button>
+              </div>
+            </div>
+          </Card>
+
+          {/* Dados pessoais */}
+          <Card className="p-4 sm:p-6">
+            <div className="mb-4 sm:mb-6 flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-light">
+                <User className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-medium text-foreground">Dados pessoais</h3>
+                <p className="text-sm text-muted-foreground">
+                  Nome, e-mail e telefone da sua conta
+                </p>
+              </div>
+            </div>
+
+            {isLoading ? (
+              <div className="flex items-center gap-2 py-8 text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm">Carregando perfil...</span>
+              </div>
+            ) : isError ? (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Nao foi possivel carregar seu perfil</AlertTitle>
+                <AlertDescription className="space-y-4">
+                  <p>{getApiErrorMessage(error, "Tente novamente em instantes.")}</p>
+                  <Button type="button" variant="outline" className="gap-2" onClick={() => void refetch()}>
+                    <RefreshCcw className="h-4 w-4" />
+                    Tentar novamente
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            ) : (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="profile-name">Nome</Label>
+                  <Input
+                    id="profile-name"
+                    value={profileName}
+                    onChange={(e) => setProfileName(e.target.value)}
+                    placeholder="Seu nome completo"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="profile-email">E-mail</Label>
+                  <Input
+                    id="profile-email"
+                    type="email"
+                    value={profileEmail}
+                    onChange={(e) => setProfileEmail(e.target.value)}
+                    placeholder="seu@email.com"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="profile-phone">Telefone</Label>
+                  <Input
+                    id="profile-phone"
+                    value={profilePhone}
+                    onChange={(e) => setProfilePhone(e.target.value)}
+                    placeholder="11999999999"
+                  />
+                </div>
+
+                {profileError && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Erro</AlertTitle>
+                    <AlertDescription>{profileError}</AlertDescription>
+                  </Alert>
+                )}
+              </div>
+            )}
+
+            <Button
+              className="mt-4 sm:mt-6 w-full"
+              onClick={handleSaveProfile}
+              disabled={isLoading || isError || updateProfileMutation.isPending || !profileName.trim() || !profileEmail.trim()}
+            >
+              {updateProfileMutation.isPending ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Salvando...</>
+              ) : "Salvar dados pessoais"}
+            </Button>
+          </Card>
+
+          {/* Alterar senha */}
+          <Card className="p-4 sm:p-6">
+            <div className="mb-4 sm:mb-6 flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-light">
+                <KeyRound className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-medium text-foreground">Alterar senha</h3>
+                <p className="text-sm text-muted-foreground">
+                  Troque sua senha de acesso ao painel
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="current-password">Senha atual</Label>
+                <Input
+                  id="current-password"
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="••••••••"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="new-password">Nova senha</Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="••••••••"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Minimo 8 caracteres com maiuscula, minuscula, numero e simbolo.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirm-password">Confirmar nova senha</Label>
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
+                />
+              </div>
+
+              {passwordError && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Erro</AlertTitle>
+                  <AlertDescription>{passwordError}</AlertDescription>
+                </Alert>
+              )}
+            </div>
+
+            <Button
+              className="mt-4 sm:mt-6 w-full"
+              variant="outline"
+              onClick={handleChangePassword}
+              disabled={changePasswordMutation.isPending || !currentPassword || !newPassword || !confirmPassword}
+            >
+              {changePasswordMutation.isPending ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Alterando...</>
+              ) : "Alterar senha"}
+            </Button>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="business" className="mt-6 space-y-6">
+          <Card className="p-4 sm:p-6">
+            <div className="mb-4 sm:mb-6 flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-light">
                 <Store className="h-5 w-5 text-primary" />
               </div>
@@ -328,7 +648,7 @@ export default function DashboardSettings() {
                   />
                 </div>
 
-                <div className="space-y-4 rounded-xl border border-border bg-muted/30 p-4">
+                <div className="space-y-4 rounded-xl border border-border bg-muted/30 p-3 sm:p-4">
                   <div>
                     <h4 className="font-medium text-foreground">
                       Cores da pagina publica
@@ -373,7 +693,7 @@ export default function DashboardSettings() {
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-dashed border-border bg-background p-4">
+                  <div className="rounded-xl border border-dashed border-border bg-background p-3 sm:p-4">
                     <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                       Previa local
                     </p>
@@ -381,16 +701,16 @@ export default function DashboardSettings() {
                       A aparencia abaixo ajuda a revisar as cores, mas so vale para os clientes
                       depois que voce salvar.
                     </p>
-                    <div className="mt-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
-                      <div className="flex items-center justify-between gap-3 rounded-xl border border-border px-4 py-3">
-                        <div>
-                          <p className="font-semibold text-foreground">{businessName || "Seu negocio"}</p>
+                    <div className="mt-3 sm:mt-4 rounded-2xl border border-border bg-card p-3 sm:p-4 shadow-sm">
+                      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border px-3 py-2 sm:px-4 sm:py-3">
+                        <div className="min-w-0">
+                          <p className="truncate font-semibold text-foreground">{businessName || "Seu negocio"}</p>
                           <p className="text-sm text-muted-foreground">
                             Como o cliente vai perceber seu tema
                           </p>
                         </div>
                         <span
-                          className="rounded-full px-3 py-1 text-xs font-semibold"
+                          className="shrink-0 rounded-full px-3 py-1 text-xs font-semibold"
                           style={{
                             backgroundColor: accentColor || "#F97316",
                             color: getReadableTextColor(accentColor || "#F97316"),
@@ -400,11 +720,11 @@ export default function DashboardSettings() {
                         </span>
                       </div>
                       <div
-                        className="mt-4 rounded-xl p-4"
+                        className="mt-3 sm:mt-4 rounded-xl p-3 sm:p-4"
                         style={{ backgroundColor: secondaryColor || "#DBEAFE" }}
                       >
                         <div
-                          className="rounded-xl px-4 py-3 text-sm font-semibold"
+                          className="rounded-xl px-3 py-2 sm:px-4 sm:py-3 text-sm font-semibold"
                           style={{
                             backgroundColor: primaryColor || "#1D4ED8",
                             color: getReadableTextColor(primaryColor || "#1D4ED8"),
@@ -428,7 +748,7 @@ export default function DashboardSettings() {
             )}
 
             <Button
-              className="mt-6 w-full"
+              className="mt-4 sm:mt-6 w-full"
               onClick={handleSaveBusiness}
               disabled={
                 isLoading ||

@@ -19,6 +19,8 @@ import DashboardClients from "./pages/DashboardClients";
 import DashboardSettings from "./pages/DashboardSettings";
 import ClientAppointments from "./pages/ClientAppointments";
 import DashboardAppointments from "./pages/DashboardAppointments";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -56,6 +58,8 @@ const App = () => (
               <Route path="/" element={<PublicEntry />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/meus-agendamentos" element={<ClientAppointments />} />
 
               {/* Protected Dashboard Routes */}

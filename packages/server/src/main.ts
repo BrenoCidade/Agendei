@@ -1,13 +1,19 @@
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 import { Logger } from 'nestjs-pino';
 import { IoAdapter } from '@nestjs/platform-socket.io';
+import * as path from 'path';
 
 async function bootstrap() {
   try {
-    const app = await NestFactory.create(AppModule, { bufferLogs: true });
+    const app = await NestFactory.create<NestExpressApplication>(AppModule, { bufferLogs: true });
     app.useLogger(app.get(Logger));
     app.useWebSocketAdapter(new IoAdapter(app));
+
+    // Serve uploaded files (avatars, etc.)
+    const uploadsPath = path.join(process.cwd(), 'uploads');
+    app.useStaticAssets(uploadsPath, { prefix: '/uploads' });
 
     // Koyeb usa proxy reverso; sem isso todos os IPs são do proxy
     app.getHttpAdapter().getInstance().set('trust proxy', 1);

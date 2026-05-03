@@ -13,6 +13,7 @@ interface UserProps {
   primaryColor?: string | null;
   secondaryColor?: string | null;
   accentColor?: string | null;
+  avatarUrl?: string | null;
   passwordHash: string;
   passwordResetToken?: string | null;
   passwordResetExpires?: Date | null;
@@ -30,6 +31,7 @@ export class User {
   private _primaryColor: string | null;
   private _secondaryColor: string | null;
   private _accentColor: string | null;
+  private _avatarUrl: string | null;
   private _passwordHash: string;
   private _passwordResetToken: string | null = null;
   private _passwordResetExpires: Date | null = null;
@@ -106,6 +108,7 @@ export class User {
       props.accentColor,
       'Accent color',
     );
+    this._avatarUrl = props.avatarUrl ?? null;
     this._passwordHash = props.passwordHash;
     this._passwordResetToken = props.passwordResetToken ?? null;
     this._passwordResetExpires = props.passwordResetExpires ?? null;
@@ -147,6 +150,10 @@ export class User {
 
   get accentColor(): string | null {
     return this._accentColor;
+  }
+
+  get avatarUrl(): string | null {
+    return this._avatarUrl;
   }
 
   get createdAt(): Date {
@@ -214,6 +221,11 @@ export class User {
 
   updatePassword(newPasswordHash: string): void {
     this._passwordHash = newPasswordHash;
+    this._updatedAt = new Date();
+  }
+
+  updateAvatar(url: string | null): void {
+    this._avatarUrl = url;
     this._updatedAt = new Date();
   }
 }

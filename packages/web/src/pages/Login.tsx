@@ -69,6 +69,12 @@ export default function Login() {
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? 'Entrando...' : 'Entrar'}
           </Button>
+
+          <p className="text-center text-sm">
+            <Link to="/forgot-password" className="text-muted-foreground hover:text-primary hover:underline">
+              Esqueci minha senha
+            </Link>
+          </p>
         </form>
 
         <p className="text-center text-sm text-muted-foreground">

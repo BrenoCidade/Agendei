@@ -13,6 +13,7 @@ export class PrismaUserMapper {
       primaryColor: raw.primaryColor ?? null,
       secondaryColor: raw.secondaryColor ?? null,
       accentColor: raw.accentColor ?? null,
+      avatarUrl: raw.avatarUrl ?? null,
       passwordHash: raw.passwordHash,
       passwordResetToken: raw.passwordResetToken ?? null,
       passwordResetExpires: raw.passwordResetTokenExpiresAt ?? null,
@@ -33,6 +34,7 @@ export class PrismaUserMapper {
       primaryColor: user.primaryColor,
       secondaryColor: user.secondaryColor,
       accentColor: user.accentColor,
+      avatarUrl: user.avatarUrl,
       passwordResetToken: user.passwordResetToken,
       passwordResetTokenExpiresAt: user.passwordResetExpires,
     };

@@ -13,6 +13,7 @@ export class UserResponseMapper {
       primaryColor: user.primaryColor,
       secondaryColor: user.secondaryColor,
       accentColor: user.accentColor,
+      avatarUrl: user.avatarUrl,
       createdAt: user.createdAt.toISOString(),
       updatedAt: user.updatedAt.toISOString(),
     };
