@@ -102,11 +102,14 @@ Agendei/
 - [x] Configurar CORS no backend (`app.enableCors()` no `main.ts`)
 - [x] Criar arquivo `.env.example`
 - [x] Adicionar `concurrently` na raiz para o script `dev:all`
+- [x] Adicionar scripts de E2E na raiz (`e2e:backend`, `e2e:web`, `e2e:all`)
+- [x] Configurar Playwright no frontend com smoke test inicial
+- [x] Padronizar execução de E2E local (backend + frontend)
 
 ### Próximos passos
 - [x] Integrar Dashboard com dados reais de `/api/appointments` (remover mocks de agenda e cards)
 - [x] Adicionar paginação e filtros na tela de Meus Agendamentos (cliente)
-- [ ] Organizar e gerar commit das mudanças de integração já concluídas
+- [x] Organizar e gerar commit das mudanças de integração já concluídas
 
 
 ---
@@ -135,3 +138,30 @@ Abra `http://localhost:8080` ou acesse diretamente:
 GET http://localhost:3333/api/health
 → { "status": "ok", "timestamp": "..." }
 ```
+
+### Rodar testes E2E
+
+```bash
+# Backend (API)
+pnpm run e2e:backend
+
+# Frontend (Playwright)
+pnpm run e2e:web:install
+pnpm run e2e:web
+
+# Execução combinada
+pnpm run e2e:all
+```
+
+### Status atual da cobertura E2E
+
+- Backend E2E: suite completa verde localmente (`pnpm run e2e:backend`).
+- Regressao backend: verde (`pnpm run e2e:backend:regression`) com foco em conflito de horario e autorizacao.
+- Frontend E2E: smoke + auth + protected + services + availability + appointments + public verdes.
+- Frontend E2E: suites por dominio validadas (`pnpm run e2e:web:services`, `pnpm run e2e:web:appointments`).
+- Frontend E2E: suite completa validada 2x consecutivas (`pnpm run e2e:web && pnpm run e2e:web`).
+- Backend E2E: suite completa validada 2x consecutivas (`pnpm run e2e:backend && pnpm run e2e:backend`).
+- Full stack E2E: validado com sucesso (`pnpm run e2e:all`).
+- Playwright configurado com `webServer` para subir API + web automaticamente durante os testes de UI.
+
+Runbook operacional: `docs/testing/e2e-runbook.md`

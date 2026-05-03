@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ValidationError, NotFoundError } from '@/domain/errors';
 import type { IUserRepository } from '@/domain/repositories/IUserRepository';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 
 interface ChangePasswordInput {
   userId: string;
