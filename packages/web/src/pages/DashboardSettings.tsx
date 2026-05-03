@@ -620,16 +620,18 @@ export default function DashboardSettings() {
                       <p className="mb-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wide">
                         Seu link para compartilhar com clientes
                       </p>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 justify-between">
                         <a
                           href={`${window.location.origin}/${normalizedSlug}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="flex-1 truncate text-sm font-medium text-primary underline-offset-2 hover:underline"
+                          className="text-sm font-medium text-primary underline-offset-2 hover:underline break-all"
                         >
                           {window.location.origin}/{normalizedSlug}
                         </a>
-                        <CopyLinkButton slug={normalizedSlug} />
+                        <div className="shrink-0">
+                          <CopyLinkButton slug={normalizedSlug} />
+                        </div>
                       </div>
                       <p className="mt-2 text-xs text-muted-foreground">
                         Envie este link para seus clientes agendarem diretamente com voce.
