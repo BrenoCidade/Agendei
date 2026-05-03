@@ -187,6 +187,7 @@ export function AvailabilitySettings() {
 
     saveMutation.mutate({
       availabilities: activeDays.map((day) => ({
+        isActive: true,
         dayOfWeek: day.dayOfWeek,
         slots: day.slots,
       })),
@@ -242,8 +243,9 @@ export function AvailabilitySettings() {
                   : "border-transparent bg-muted/30"
               }`}
             >
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex min-w-[160px] items-center gap-3">
+              {/* Day toggle row */}
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
                   <Switch
                     checked={day.active}
                     onCheckedChange={() => toggleDay(day.dayOfWeek)}
@@ -256,70 +258,69 @@ export function AvailabilitySettings() {
                     {day.name}
                   </Label>
                 </div>
-
-                {day.active ? (
-                  <div className="flex-1 space-y-2">
-                    {day.slots.map((slot, slotIndex) => (
-                      <div key={slotIndex} className="flex items-center gap-2">
-                        <div className="flex items-center gap-2">
-                          <Input
-                            type="time"
-                            value={slot.start}
-                            onChange={(event) =>
-                              updateSlot(
-                                day.dayOfWeek,
-                                slotIndex,
-                                "start",
-                                event.target.value,
-                              )
-                            }
-                            className="w-[120px]"
-                          />
-                          <span className="text-muted-foreground">ate</span>
-                          <Input
-                            type="time"
-                            value={slot.end}
-                            onChange={(event) =>
-                              updateSlot(
-                                day.dayOfWeek,
-                                slotIndex,
-                                "end",
-                                event.target.value,
-                              )
-                            }
-                            className="w-[120px]"
-                          />
-                        </div>
-
-                        {day.slots.length > 1 && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeSlot(day.dayOfWeek, slotIndex)}
-                            className="h-8 w-8 text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-                    ))}
-
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => addSlot(day.dayOfWeek)}
-                      className="text-primary hover:text-primary"
-                    >
-                      <Plus className="mr-1 h-4 w-4" />
-                      Adicionar intervalo
-                    </Button>
-                  </div>
-                ) : (
+                {!day.active && (
                   <span className="text-sm italic text-muted-foreground">
                     Fechado
                   </span>
                 )}
               </div>
+
+              {/* Slots — stacked below the toggle row */}
+              {day.active && (
+                <div className="mt-3 space-y-2 pl-[calc(2rem+12px)]">
+                  {day.slots.map((slot, slotIndex) => (
+                    <div key={slotIndex} className="flex flex-wrap items-center gap-2">
+                      <Input
+                        type="time"
+                        value={slot.start}
+                        onChange={(event) =>
+                          updateSlot(
+                            day.dayOfWeek,
+                            slotIndex,
+                            "start",
+                            event.target.value,
+                          )
+                        }
+                        className="w-[110px] min-w-0"
+                      />
+                      <span className="text-sm text-muted-foreground">até</span>
+                      <Input
+                        type="time"
+                        value={slot.end}
+                        onChange={(event) =>
+                          updateSlot(
+                            day.dayOfWeek,
+                            slotIndex,
+                            "end",
+                            event.target.value,
+                          )
+                        }
+                        className="w-[110px] min-w-0"
+                      />
+                      {day.slots.length > 1 && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeSlot(day.dayOfWeek, slotIndex)}
+                          className="h-8 w-8 text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => addSlot(day.dayOfWeek)}
+                    className="text-primary hover:text-primary"
+                  >
+                    <Plus className="mr-1 h-4 w-4" />
+                    Adicionar intervalo
+                  </Button>
+                </div>
+              )}
             </div>
           ))}
         </CardContent>

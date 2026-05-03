@@ -3,8 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import {
   AlertCircle,
   CalendarDays,
-  ChevronLeft,
-  ChevronRight,
   RefreshCcw,
   Search,
   SlidersHorizontal,
@@ -14,7 +12,6 @@ import type { AppointmentResponse } from "@saas/shared";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Select,

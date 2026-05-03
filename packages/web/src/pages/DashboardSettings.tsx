@@ -191,7 +191,7 @@ export default function DashboardSettings() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-2xl">
+    <div className="space-y-6 animate-fade-in w-full max-w-2xl">
       <div>
         <h2 className="text-lg font-semibold text-foreground">Configuracoes</h2>
         <p className="text-sm text-muted-foreground">
