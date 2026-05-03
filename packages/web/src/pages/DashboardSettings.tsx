@@ -625,7 +625,7 @@ export default function DashboardSettings() {
                           href={`${window.location.origin}/${normalizedSlug}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-sm font-medium text-primary underline-offset-2 hover:underline break-all"
+                          className="min-w-0 flex-1 break-all text-sm font-medium text-primary underline-offset-2 hover:underline"
                         >
                           {window.location.origin}/{normalizedSlug}
                         </a>
