@@ -4,7 +4,8 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 const navItems = [
-  { label: "Agenda", path: "/dashboard", icon: CalendarDays },
+  { label: "Agenda de Hoje", path: "/dashboard", icon: CalendarDays },
+  { label: "Agendamentos", path: "/dashboard/appointments", icon: Calendar },
   { label: "Meus Serviços", path: "/dashboard/services", icon: Scissors },
   { label: "Clientes", path: "/dashboard/clients", icon: Users },
   { label: "Configurações", path: "/dashboard/settings", icon: Settings },

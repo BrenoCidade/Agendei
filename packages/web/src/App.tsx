@@ -18,6 +18,7 @@ import DashboardServices from "./pages/DashboardServices";
 import DashboardClients from "./pages/DashboardClients";
 import DashboardSettings from "./pages/DashboardSettings";
 import ClientAppointments from "./pages/ClientAppointments";
+import DashboardAppointments from "./pages/DashboardAppointments";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -69,6 +70,7 @@ const App = () => (
                 <Route index element={<Dashboard />} />
                 <Route path="services" element={<DashboardServices />} />
                 <Route path="clients" element={<DashboardClients />} />
+                <Route path="appointments" element={<DashboardAppointments />} />
                 <Route path="settings" element={<DashboardSettings />} />
               </Route>
 

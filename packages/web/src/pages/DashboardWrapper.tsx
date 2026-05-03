@@ -3,6 +3,7 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "Agenda de Hoje",
+  "/dashboard/appointments": "Todos os Agendamentos",
   "/dashboard/services": "Meus Serviços",
   "/dashboard/clients": "Clientes",
   "/dashboard/settings": "Configurações",
