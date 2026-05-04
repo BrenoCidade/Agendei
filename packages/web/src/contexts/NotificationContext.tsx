@@ -30,12 +30,12 @@ function formatDate(iso: string): string {
 }
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
-  const { token } = useAuth();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
-    if (!token) {
+    if (!user) {
       socketRef.current?.disconnect();
       socketRef.current = null;
       return;
@@ -44,13 +44,14 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     const socket = io(getSocketUrl(), {
       namespace: '/notifications',
       transports: ['websocket'],
+      withCredentials: true, // envia o cookie httpOnly para autenticação
       autoConnect: true,
     });
 
     socketRef.current = socket;
 
     socket.on('connect', () => {
-      socket.emit('authenticate', token);
+      // autenticação via cookie — sem necessidade de emitir token
     });
 
     socket.on('appointment.created', (payload: NotificationPayload) => {
@@ -75,7 +76,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [token, queryClient]);
+  }, [user, queryClient]);
 
   return (
     <NotificationContext.Provider value={null}>
