@@ -33,13 +33,6 @@ export class Appointment {
   private _updatedAt: Date;
 
   constructor(props: AppointmentProps) {
-    if (props.startsAt < new Date()) {
-      throw new ValidationError(
-        'Cannot schedule appointments in the past',
-        'APPOINTMENT_PAST_DATE',
-      );
-    }
-
     if (props.endsAt <= props.startsAt) {
       throw new ValidationError(
         'End time must be after start time',
