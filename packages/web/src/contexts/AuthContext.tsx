@@ -4,8 +4,7 @@ import { api, getApiErrorMessage, isUnauthorizedError } from '@/lib/api';
 
 interface AuthContextType {
   user: UserResponseDTO | null;
-  token: string | null;
-  login: (token: string) => Promise<void>;
+  login: () => Promise<void>;
   logout: () => void;
   isLoading: boolean;
   bootstrapError: string | null;
@@ -16,33 +15,23 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserResponseDTO | null>(null);
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('access_token'));
-  const [isLoading, setIsLoading] = useState(!!localStorage.getItem('access_token'));
+  const [isLoading, setIsLoading] = useState(true);
   const [bootstrapError, setBootstrapError] = useState<string | null>(null);
 
   const clearSession = () => {
-    localStorage.removeItem('access_token');
-    setToken(null);
     setUser(null);
     setBootstrapError(null);
   };
 
-  const loadProfile = async (authToken: string) => {
-    const res = await api.get<UserResponseDTO>('/profile/me', {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
-
+  const loadProfile = async () => {
+    const res = await api.get<UserResponseDTO>('/profile/me');
     setUser(res.data);
     setBootstrapError(null);
   };
 
   const refreshProfile = async () => {
-    if (!token) {
-      return;
-    }
-
     try {
-      await loadProfile(token);
+      await loadProfile();
     } catch (error) {
       if (isUnauthorizedError(error)) {
         clearSession();
@@ -56,16 +45,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    if (!token) {
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-
-    loadProfile(token)
+    loadProfile()
       .catch((error) => {
         if (isUnauthorizedError(error)) {
+          // Sem sessão ativa — estado normal, não é erro
           clearSession();
           return;
         }
@@ -75,14 +58,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         );
       })
       .finally(() => setIsLoading(false));
-  }, [token]);
+  }, []);
 
-  const login = async (newToken: string) => {
-    localStorage.setItem('access_token', newToken);
-    setToken(newToken);
-
+  // Cookie foi setado pelo servidor no login — só precisamos carregar o perfil
+  const login = async () => {
     try {
-      await loadProfile(newToken);
+      await loadProfile();
     } catch (error) {
       clearSession();
       throw error;
@@ -90,12 +71,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
+    void api.post('/auth/logout').catch(() => {});
     clearSession();
   };
 
   return (
     <AuthContext.Provider
-      value={{ user, token, login, logout, isLoading, bootstrapError, refreshProfile }}
+      value={{ user, login, logout, isLoading, bootstrapError, refreshProfile }}
     >
       {children}
     </AuthContext.Provider>

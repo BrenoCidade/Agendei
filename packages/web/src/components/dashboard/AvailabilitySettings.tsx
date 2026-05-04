@@ -203,7 +203,8 @@ export function AvailabilitySettings() {
             Configurar disponibilidade
           </CardTitle>
           <CardDescription>
-            Defina seus horarios de trabalho para cada dia da semana
+            Ative os dias que voce trabalha e defina os periodos de atendimento.
+            Voce pode adicionar mais de um periodo por dia — por exemplo, manha (09:00–12:00) e tarde (14:00–18:00).
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -265,50 +266,63 @@ export function AvailabilitySettings() {
                 )}
               </div>
 
-              {/* Slots — stacked below the toggle row */}
+              {/* Periods — stacked below the toggle row */}
               {day.active && (
-                <div className="mt-3 space-y-2 pl-[calc(2rem+12px)]">
+                <div className="mt-3 space-y-3 pl-[calc(2rem+12px)]">
                   {day.slots.map((slot, slotIndex) => (
-                    <div key={slotIndex} className="flex flex-wrap items-center gap-2">
-                      <Input
-                        type="time"
-                        value={slot.start}
-                        onChange={(event) =>
-                          updateSlot(
-                            day.dayOfWeek,
-                            slotIndex,
-                            "start",
-                            event.target.value,
-                          )
-                        }
-                        className="w-[110px] min-w-0"
-                      />
-                      <span className="text-sm text-muted-foreground">até</span>
-                      <Input
-                        type="time"
-                        value={slot.end}
-                        onChange={(event) =>
-                          updateSlot(
-                            day.dayOfWeek,
-                            slotIndex,
-                            "end",
-                            event.target.value,
-                          )
-                        }
-                        className="w-[110px] min-w-0"
-                      />
+                    <div key={slotIndex} className="space-y-1">
                       {day.slots.length > 1 && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeSlot(day.dayOfWeek, slotIndex)}
-                          className="h-8 w-8 text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <span className="text-xs font-medium text-muted-foreground">
+                          Período {slotIndex + 1}
+                        </span>
                       )}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Input
+                          type="time"
+                          value={slot.start}
+                          onChange={(event) =>
+                            updateSlot(
+                              day.dayOfWeek,
+                              slotIndex,
+                              "start",
+                              event.target.value,
+                            )
+                          }
+                          className="w-[110px] min-w-0"
+                        />
+                        <span className="text-sm text-muted-foreground">até</span>
+                        <Input
+                          type="time"
+                          value={slot.end}
+                          onChange={(event) =>
+                            updateSlot(
+                              day.dayOfWeek,
+                              slotIndex,
+                              "end",
+                              event.target.value,
+                            )
+                          }
+                          className="w-[110px] min-w-0"
+                        />
+                        {day.slots.length > 1 && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeSlot(day.dayOfWeek, slotIndex)}
+                            className="h-8 w-8 text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   ))}
+
+                  {day.slots.length === 1 && (
+                    <p className="text-xs text-muted-foreground">
+                      Tem pausa no meio do dia? Adicione um segundo periodo (ex: tarde).
+                    </p>
+                  )}
 
                   <Button
                     variant="ghost"
@@ -317,7 +331,7 @@ export function AvailabilitySettings() {
                     className="text-primary hover:text-primary"
                   >
                     <Plus className="mr-1 h-4 w-4" />
-                    Adicionar intervalo
+                    Adicionar periodo de trabalho
                   </Button>
                 </div>
               )}

@@ -7,27 +7,19 @@ const normalizedApiBaseUrl = configuredApiUrl
 
 export const api = axios.create({
   baseURL: normalizedApiBaseUrl,
-});
-
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('access_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
+  withCredentials: true, // envia o cookie httpOnly em todas as requisições
 });
 
 api.interceptors.response.use(
   (res) => res,
   (error) => {
     const requestUrl = String(error.config?.url ?? '');
-    const isAuthRequest =
-      requestUrl.includes('/auth/login') || requestUrl.includes('/auth/register');
-    const hasStoredToken = Boolean(localStorage.getItem('access_token'));
+    const isAuthOrProfileCheck =
+      requestUrl.includes('/auth/login') ||
+      requestUrl.includes('/auth/register') ||
+      requestUrl.includes('/profile/me');
 
-    if (error.response?.status === 401 && hasStoredToken && !isAuthRequest) {
-      localStorage.removeItem('access_token');
-
+    if (error.response?.status === 401 && !isAuthOrProfileCheck) {
       if (window.location.pathname !== '/login') {
         window.location.href = '/login';
       }

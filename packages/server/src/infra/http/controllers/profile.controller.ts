@@ -162,7 +162,9 @@ export class ProfileController {
   }
 
   @Post('/avatar')
-  @UseInterceptors(FileInterceptor('avatar'))
+  @UseInterceptors(FileInterceptor('avatar', {
+    limits: { fileSize: 2 * 1024 * 1024 }, // 2 MB — rejeita antes de bufferizar
+  }))
   async uploadAvatar(
     @Request() req: RequestWithUser & ExpressRequest,
     @UploadedFile() file: Express.Multer.File,

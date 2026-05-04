@@ -4,12 +4,17 @@ import { AppModule } from './app.module';
 import { Logger } from 'nestjs-pino';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import * as path from 'path';
+import helmet from 'helmet';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   try {
     const app = await NestFactory.create<NestExpressApplication>(AppModule, { bufferLogs: true });
     app.useLogger(app.get(Logger));
     app.useWebSocketAdapter(new IoAdapter(app));
+
+    app.use(helmet());
+    app.use(cookieParser());
 
     // Serve uploaded files (avatars, etc.)
     const uploadsPath = path.join(process.cwd(), 'uploads');

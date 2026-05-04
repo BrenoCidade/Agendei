@@ -8,6 +8,7 @@ import {
   HttpStatus,
   Logger,
   Post,
+  Res,
   UnauthorizedException,
   UsePipes,
 } from '@nestjs/common';
@@ -34,6 +35,16 @@ import {
 } from '@/domain/errors';
 import { ResetPasswordUseCase } from '@/application/use-cases/user/reset-password.use-case';
 import { ForgotPasswordUseCase } from '@/application/use-cases/user/forgot-password.use-case';
+import type { Response } from 'express';
+
+const COOKIE_NAME = 'access_token';
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict' as const,
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  path: '/',
+};
 
 @Controller('/auth')
 export class AuthController {
@@ -78,7 +89,10 @@ export class AuthController {
   @Post('/login')
   @HttpCode(HttpStatus.OK)
   @UsePipes(new ZodValidationPipe(loginSchema))
-  async login(@Body() body: LoginDTO) {
+  async login(
+    @Body() body: LoginDTO,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const { email, password } = body;
 
     try {
@@ -87,16 +101,14 @@ export class AuthController {
         password,
       });
 
-      const payload = {
+      const accessToken = this.jwtService.sign({
         sub: user.id.toString(),
         email: user.email,
-      };
+      });
 
-      const accessToken = this.jwtService.sign(payload);
+      res.cookie(COOKIE_NAME, accessToken, COOKIE_OPTIONS);
 
-      return {
-        access_token: accessToken,
-      };
+      return { success: true };
     } catch (error) {
       if (error instanceof ValidationError) {
         throw new UnauthorizedException('Invalid credentials');
@@ -112,6 +124,12 @@ export class AuthController {
     }
   }
 
+  @Post('/logout')
+  @HttpCode(HttpStatus.OK)
+  logout(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie(COOKIE_NAME, { ...COOKIE_OPTIONS, maxAge: 0 });
+  }
+
   @Throttle({ default: { limit: 3, ttl: 60000 } })
   @Post('/forgot-password')
   @HttpCode(HttpStatus.OK)
@@ -120,6 +138,7 @@ export class AuthController {
     await this.forgotPasswordUseCase.execute({ email: body.email });
   }
 
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('/reset-password')
   @HttpCode(HttpStatus.OK)
   @UsePipes(new ZodValidationPipe(resetPasswordSchema))

@@ -14,6 +14,7 @@ This roadmap takes the current brownfield Agendei codebase from partially integr
 - [ ] **Phase 2: Public Booking Reliability** - Finish the public scheduling journey with real slot, booking, and customer self-service flows.
 - [ ] **Phase 3: Resilient Async UX** - Standardize loading, empty, error, and feedback handling across critical screens.
 - [ ] **Phase 4: Homologation Readiness** - Validate the stack end to end and prepare the MVP for first external testers.
+- [ ] **Phase 5: Tenant Branding Colors** - Let each provider configure safe public booking colors that apply dynamically per tenant.
 
 ## Phase Details
 
@@ -81,10 +82,26 @@ Plans:
 - [ ] 04-01: Close validation gaps in full-stack execution and E2E coverage
 - [ ] 04-02: Prepare homologation handoff and release checklist
 
+### Phase 5: Tenant Branding Colors
+**Goal**: Each tenant can personalize the public booking page with validated brand colors while preserving contrast, safety, and isolation between providers.
+**Depends on**: Phase 2
+**Requirements**: [BRAND-01, BRAND-02, BRAND-03, BRAND-04]
+**Success Criteria** (what must be TRUE):
+  1. Provider can configure primary, secondary, and accent colors in HEX format from the dashboard.
+  2. Brand color settings are persisted per tenant and do not affect other providers.
+  3. Public booking pages load and apply tenant-specific colors dynamically through safe theme tokens.
+  4. Invalid or low-safety combinations fall back cleanly instead of producing unreadable pages.
+**Plans**: 3 plans
+
+Plans:
+- [ ] 05-01: Add persisted tenant brand color settings and validation contracts
+- [ ] 05-02: Build dashboard color configuration flow with safe previews and feedback
+- [ ] 05-03: Apply dynamic tenant theme tokens to the public booking experience
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -92,3 +109,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | 2. Public Booking Reliability | 0/3 | Not started | - |
 | 3. Resilient Async UX | 0/3 | Not started | - |
 | 4. Homologation Readiness | 0/2 | Not started | - |
+| 5. Tenant Branding Colors | 0/3 | Not started | - |

@@ -22,8 +22,8 @@ export default function Login() {
     setLoading(true);
     try {
       const body: LoginDTO = { email, password };
-      const res = await api.post<{ access_token: string }>('/auth/login', body);
-      await login(res.data.access_token);
+      await api.post('/auth/login', body); // servidor seta o cookie httpOnly
+      await login(); // carrega o perfil usando o cookie
       navigate('/dashboard');
     } catch {
       setError('E-mail ou senha inválidos.');

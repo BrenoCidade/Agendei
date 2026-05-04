@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ProviderHeader } from "@/components/booking/ProviderHeader";
 import { ServiceList } from "@/components/booking/ServiceList";
 import { DateTimePicker } from "@/components/booking/DateTimePicker";
@@ -10,7 +10,7 @@ import { StepIndicator } from "@/components/booking/StepIndicator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { api } from "@/lib/api";
+import { api, getApiErrorMessage } from "@/lib/api";
 import { buildPublicBrandingStyle } from "@/lib/public-branding";
 import type {
   AppointmentResponse,
@@ -38,6 +38,7 @@ interface Service {
 
 const Index = () => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { slug } = useParams<{ slug: string }>();
   const providerSlug = slug?.trim() ?? "";
 
@@ -130,10 +131,22 @@ const Index = () => {
       setCustomerEmail("");
       setCustomerPhone("");
     },
-    onError: () => {
+    onError: (error) => {
+      void queryClient.invalidateQueries({
+        queryKey: ["public-slots", providerSlug, selectedService?.id, selectedDateString],
+      });
+      setSelectedTime(null);
+
+      const apiMessage = getApiErrorMessage(error, "");
+      const isSlotTaken =
+        apiMessage.toLowerCase().includes("already booked") ||
+        apiMessage.toLowerCase().includes("slot");
+
       toast({
         title: "Nao foi possivel concluir o agendamento",
-        description: "Confira os dados e tente novamente.",
+        description: isSlotTaken
+          ? "Este horário já foi reservado. Os horários disponíveis foram atualizados — escolha outro."
+          : "Confira os dados e tente novamente.",
         variant: "destructive",
       });
     },

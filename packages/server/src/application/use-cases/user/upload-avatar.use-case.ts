@@ -1,13 +1,12 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { NotFoundError, ValidationError } from '@/domain/errors';
 import type { IUserRepository } from '@/domain/repositories/IUserRepository';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 interface UploadAvatarInput {
   userId: string;
   buffer: Buffer;
   mimetype: string;
-  /** Base URL da API, não é mais usado estritamente no Supabase, mas mantemos pela assinatura */
   baseUrl?: string;
 }
 
@@ -21,11 +20,26 @@ const EXTENSION_MAP: Record<string, string> = {
 };
 
 @Injectable()
-export class UploadAvatarUseCase {
+export class UploadAvatarUseCase implements OnModuleInit {
+  private supabase!: SupabaseClient;
+
   constructor(
     @Inject('IUserRepository')
     private readonly userRepository: IUserRepository,
   ) {}
+
+  onModuleInit() {
+    const url = process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_KEY;
+
+    if (!url || !key) {
+      throw new Error(
+        'SUPABASE_URL e SUPABASE_KEY são obrigatórios. Configure o .env do backend.',
+      );
+    }
+
+    this.supabase = createClient(url, key);
+  }
 
   async execute(input: UploadAvatarInput): Promise<string> {
     const user = await this.userRepository.findById(input.userId);
@@ -47,32 +61,30 @@ export class UploadAvatarUseCase {
       );
     }
 
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_KEY;
-
-    if (!supabaseUrl || !supabaseKey) {
-      throw new Error("SUPABASE_URL e SUPABASE_KEY não estão configurados no .env do backend.");
+    // Delete previous avatar to avoid accumulating stale files
+    if (user.avatarUrl) {
+      const oldFilename = user.avatarUrl.split('/').pop();
+      if (oldFilename) {
+        await this.supabase.storage.from('avatars').remove([oldFilename]);
+      }
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
     const ext = EXTENSION_MAP[input.mimetype];
-    // Usa um timestamp no nome para garantir que navegadores não façam cache da imagem antiga
     const timestamp = Date.now();
     const filename = `${input.userId}-${timestamp}.${ext}`;
 
-    const { error: uploadError } = await supabase.storage
+    const { error: uploadError } = await this.supabase.storage
       .from('avatars')
       .upload(filename, input.buffer, {
         contentType: input.mimetype,
-        upsert: false, // Cria um novo arquivo por causa do timestamp
+        upsert: false,
       });
 
     if (uploadError) {
       throw new Error(`Falha no upload para o Supabase: ${uploadError.message}`);
     }
 
-    const { data: publicUrlData } = supabase.storage
+    const { data: publicUrlData } = this.supabase.storage
       .from('avatars')
       .getPublicUrl(filename);
 

@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { api } from "@/lib/api";
+import { api, getApiErrorMessage } from "@/lib/api";
 import { getPublicProviderSlug } from "@/lib/public-provider";
 
 interface Appointment {
@@ -60,8 +60,8 @@ export function ClientAppointmentsManager() {
     onSuccess: (data) => {
       setAppointments(data);
     },
-    onError: () => {
-      toast.error("Nao foi possivel buscar agendamentos");
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, "Nao foi possivel buscar agendamentos. Tente novamente."));
     },
   });
 
@@ -82,8 +82,8 @@ export function ClientAppointmentsManager() {
       );
       toast.success("Agendamento cancelado com sucesso");
     },
-    onError: () => {
-      toast.error("Nao foi possivel cancelar o agendamento");
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, "Nao foi possivel cancelar o agendamento. Tente novamente."));
     },
     onSettled: () => {
       setCancelDialogOpen(false);

@@ -58,6 +58,10 @@
 - **ENH-02**: Advanced notification preferences with backend persistence.
 - **ENH-03**: Broader provider CRM and customer analytics features.
 - **ENH-04**: New acquisition or marketplace capabilities beyond the booking MVP.
+- **BRAND-01**: Provider can configure primary, secondary, and accent public brand colors in HEX format.
+- **BRAND-02**: Tenant brand colors are persisted per provider with validation and safe fallback behavior.
+- **BRAND-03**: Public booking page loads and applies tenant-specific colors dynamically without leaking styling across tenants.
+- **BRAND-04**: Public brand customization preserves readable contrast and never renders critical booking UI illegible.
 
 ## Out of Scope
 
@@ -99,10 +103,14 @@
 | INT-04 | Phase 4 | Pending |
 | INT-05 | Phase 4 | Pending |
 | INT-06 | Phase 4 | Pending |
+| BRAND-01 | Phase 5 | Pending |
+| BRAND-02 | Phase 5 | Pending |
+| BRAND-03 | Phase 5 | Pending |
+| BRAND-04 | Phase 5 | Pending |
 
 **Coverage:**
-- v1 requirements: 27 total
-- Mapped to phases: 27
+- v1 requirements: 31 total
+- Mapped to phases: 31
 - Unmapped: 0
 
 ---
