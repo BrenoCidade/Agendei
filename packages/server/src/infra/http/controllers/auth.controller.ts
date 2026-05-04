@@ -38,10 +38,12 @@ import { ForgotPasswordUseCase } from '@/application/use-cases/user/forgot-passw
 import type { Response } from 'express';
 
 const COOKIE_NAME = 'access_token';
+const IS_PROD = process.env.NODE_ENV === 'production';
+
 const COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict' as const,
+  secure: IS_PROD,
+  sameSite: IS_PROD ? ('none' as const) : ('lax' as const),
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   path: '/',
 };
