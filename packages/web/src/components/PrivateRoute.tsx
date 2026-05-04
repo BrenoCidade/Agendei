@@ -4,7 +4,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 
 export function PrivateRoute({ children }: { children: React.ReactNode }) {
-  const { token, isLoading, bootstrapError, refreshProfile, logout } = useAuth();
+  const { user, isLoading, bootstrapError, refreshProfile, logout } = useAuth();
 
   if (isLoading) {
     return (
@@ -14,7 +14,7 @@ export function PrivateRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!token) {
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 
