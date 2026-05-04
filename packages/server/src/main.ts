@@ -5,7 +5,7 @@ import { Logger } from 'nestjs-pino';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import * as path from 'path';
 import helmet from 'helmet';
-import * as cookieParser from 'cookie-parser';
+import cookieParser = require('cookie-parser');
 
 async function bootstrap() {
   try {
