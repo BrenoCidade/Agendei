@@ -5,6 +5,7 @@ import {
   ForbiddenException,
   Get,
   Inject,
+  Logger,
   NotFoundException,
   Param,
   Patch,
@@ -40,6 +41,8 @@ interface RequestWithUser {
 @Controller('/appointments')
 @UseGuards(JwtAuthGuard)
 export class AppointmentsController {
+  private readonly logger = new Logger(AppointmentsController.name);
+
   constructor(
     private readonly listAppointmentsUseCase: ListAppointmentsUseCase,
     private readonly confirmAppointmentUseCase: ConfirmAppointmentUseCase,
@@ -72,6 +75,7 @@ export class AppointmentsController {
         throw new NotFoundException(error.message);
       }
 
+      this.logger.error('Unexpected error in listAppointments', error);
       throw new BadRequestException('An unexpected error occurred');
     }
   }

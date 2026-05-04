@@ -92,9 +92,14 @@ export default function DashboardClients() {
 
   const { data: allAppointments = [], isLoading: isLoadingAppointments } =
     useQuery<AppointmentResponse[]>({
-      queryKey: ["appointments"],
+      queryKey: ["appointments", "all-history"],
       queryFn: async () => {
-        const response = await api.get<AppointmentResponse[]>("/appointments");
+        const response = await api.get<AppointmentResponse[]>("/appointments", {
+          params: {
+            startDate: "2020-01-01",
+            endDate: "2030-12-31",
+          },
+        });
         return response.data;
       },
       enabled: !!selectedClient,
