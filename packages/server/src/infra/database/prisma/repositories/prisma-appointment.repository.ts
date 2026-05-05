@@ -71,6 +71,7 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
       where: {
         providerId,
         startsAt: { gte: startDate, lte: endDate },
+        status: { not: 'CANCELLED' },
       },
       orderBy: { startsAt: 'asc' },
     });

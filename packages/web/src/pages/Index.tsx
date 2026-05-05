@@ -104,6 +104,11 @@ const Index = () => {
         startsAt.getTime() + selectedService.durationInMinutes * 60 * 1000,
       );
 
+      const pad = (n: number) => String(n).padStart(2, "0");
+      const toNaiveISOString = (date: Date): string =>
+        `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
+        `T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}.000Z`;
+
       const res = await api.post<AppointmentResponse>(
         `/public/${providerSlug}/schedule`,
         {
@@ -111,8 +116,8 @@ const Index = () => {
           customerEmail,
           customerPhone,
           serviceId: selectedService.id,
-          startsAt: startsAt.toISOString(),
-          endsAt: endsAt.toISOString(),
+          startsAt: toNaiveISOString(startsAt),
+          endsAt: toNaiveISOString(endsAt),
         },
       );
 

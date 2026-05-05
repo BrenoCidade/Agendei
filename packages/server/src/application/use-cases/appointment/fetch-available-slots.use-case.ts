@@ -59,10 +59,10 @@ export class FetchAvailableSlotsUseCase {
     }
 
     const startOfDay = new Date(input.date);
-    startOfDay.setHours(0, 0, 0, 0);
+    startOfDay.setUTCHours(0, 0, 0, 0);
 
     const endOfDay = new Date(input.date);
-    endOfDay.setHours(23, 59, 59, 999);
+    endOfDay.setUTCHours(23, 59, 59, 999);
 
     const appointments =
       await this.appointmentRepository.findByProviderAndDateRange(
@@ -146,7 +146,7 @@ export class FetchAvailableSlotsUseCase {
   private parseSlotToDateTime(slot: string, baseDate: Date): Date {
     const [hour, minute] = slot.split(':').map(Number);
     const date = new Date(baseDate);
-    date.setHours(hour, minute, 0, 0);
+    date.setUTCHours(hour, minute, 0, 0);
     return date;
   }
 }
